@@ -1,6 +1,31 @@
+import re, string
+from lxml import etree
+
+def read_gcide_syllables(res):
+    word_splitter = re.compile(r' |\t|-')
+    accent_splitter = re.compile(r'[\*|\-|\"|\`]+')
+    with open('xml_files/gcide.xml', 'r') as fd:
+        doc = etree.parse(fd)
+        for definition in (t.text.lower() for t in doc.xpath('//hw') if t.text is not None):
+            for word in word_splitter.split(definition):
+                word = ''.join(t for t in word if t in string.printable)
+                syllables = list(filter(None, accent_splitter.split(word)))
+                # if we don't have syllable markup, or result is just silly, give up
+                if len(syllables) < 2:
+                    continue
+                res[''.join(syllables)] = len(syllables)
+        del doc
 
 class Syllables:
+    def __init__(self):
+        self.known = {}
+        self.hit = self.miss = 0
+        read_gcide_syllables(self.known)
+
     def lookup(self, word):
+        word = ''.join((t for t in word.lower() if t in string.ascii_letters))
+        if word in self.known:
+            return self.known[word]
         return self.__syllable_estimate(word)
 
     def __syllable_estimate(self, token):
