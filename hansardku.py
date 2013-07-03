@@ -31,7 +31,7 @@ if __name__ == '__main__':
 
     class HaikuContextFactory:
         def __init__(self, et):
-            self.date = one(et, '/session.header/date')
+            self.date = one(et, '/hansard/session.header/date')
 
         def create(self, elem):
             return {
