@@ -16,13 +16,13 @@ if __name__ == '__main__':
             e = etree.parse(fd)
         elems = e.xpath('//talk.start/talker/../..')
         for elem in elems:
-            print("****************************")
+            print("****************************", elem)
             paras = elem.xpath('.//para|.//body')
             lines = []
             for para in paras:
                 lines += (t.strip() for t in xml2text(para).splitlines())
             for line in lines:
-                print(line)
+                print(':'+line)
     
     for xml_file in sys.argv[1:]:
         make_haiku(xml_file)
