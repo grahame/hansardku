@@ -12,15 +12,16 @@ if __name__ == '__main__':
         "Return first n items of the iterable as a list"
         return list(itertools.islice(iterable, n))
 
-    def one(e, p):
+    def oneof(e, p):
         m = e.xpath(p)
         if not m:
             return
-        elif len(m) > 1:
-            print(e, p)
-            print(m)
-            raise Exception("More than one match!")
-        return m[0].text
+        matches = [xml2text(t).strip()for t in m]
+        matches = [t for t in matches if t]
+        if len(matches) == 0:
+            return
+        else:
+            return matches[0]
 
     def killclass(et, cls, backto=None):
         elems = et.xpath('//*[@class="%s"]' % cls)
@@ -64,20 +65,26 @@ if __name__ == '__main__':
         tbl_len = len(tbl)
 
         def __init__(self, et):
-            self.date = one(et, '/hansard/session.header/date')
-
+            self.session = {
+                'date' : oneof(et, '/hansard/session.header/date'),
+                'parliament' : oneof(et, '/hansard/session.header/date'),
+                'session' : oneof(et, '/hansard/session.header/session.no'),
+                'period' : oneof(et, '/hansard/session.header/period.no'),
+                'chamber' : oneof(et, '/hansard/session.header/chamber'),
+            }
         def create(self, elem):
-            name = one(elem, './talk.start/talker/name[@role="metadata"]')
+            name = oneof(elem, './talk.start/talker/name[@role="metadata"]')
             if name is None:
-                name = one(elem, './talk.start/talker/name')
+                name = oneof(elem, './talk.start/talker/name')
             if name.upper().find("PRESIDENT") != -1 or name.upper().find("SPEAKER") != -1:
                 return None
-            return HaikuContext({
-                'date' : self.date,
-                'name.id' : one(elem, './talk.start/talker/name.id'),
+            doc = self.session.copy()
+            doc.update({
+                'name.id' : oneof(elem, './talk.start/talker/name.id'),
                 'name' : name,
-                'party' : one(elem, './talk.start/talker/party')
+                'party' : oneof(elem, './talk.start/talker/party')
             })
+            return HaikuContext(doc)
 
     def para_iter(xml_file):
         with open(xml_file, 'rb') as fd:
