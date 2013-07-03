@@ -2,9 +2,7 @@
 
 from syllables import Syllables
 
-def poem_finder(stream, pattern, callback):
-    counter = Syllables()
-
+def poem_finder(counter, stream, pattern, callback):
     class Possibility:
         def __init__(self):
             self.lines = []
@@ -45,5 +43,6 @@ if __name__ == '__main__':
         print()
 
     haiku = [5, 7, 5]
-    poem_finder(word_stream(), haiku, callback)
+    counter = Syllables()
+    poem_finder(counter, word_stream(), haiku, callback)
 
