@@ -20,11 +20,18 @@ class TextXml2Text(unittest.TestCase):
     def test_element_tail(self):
         self.check_result("<a><b>power</b>goat</a>", "powergoat")
 
-    def test_complex(self):
+    def test_two_element_nested_tail(self):
         self.check_result("""<a><b><c>First</c></b>Last</a>""", "FirstLast")
 
+    def test_two_element_nested_lead(self):
+        self.check_result("""<a>First<b><c>Last</c></b></a>""", "FirstLast")
+
+
 def xml2text(et):
-    return (''.join([(t.text or '') + (t.tail or '') for t in et.xpath('. | .//*')])).strip()
+    def _rec(elem):
+        return (elem.text or '') + ''.join( _rec(child) for child in elem.xpath('./*') ) + (elem.tail or '')
+    # cope if we've been given an elementtree rather than an element
+    return _rec(et.xpath('.')[0])
 
 if __name__ == '__main__':
     unittest.main()
