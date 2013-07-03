@@ -75,7 +75,6 @@ if __name__ == '__main__':
 
     def make_haiku(xml_file):
         for ctxt, para in para_iter(xml_file):
-            print(ctxt, para)
             poem_finder(counter, word_stream(para), haiku, lambda c: callback(ctxt, c))
 
     for xml_file in sys.argv[1:]:
