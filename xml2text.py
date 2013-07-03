@@ -14,21 +14,23 @@ class TextXml2Text(unittest.TestCase):
     def test_one_element_body(self):
         self.check_result("<a>goat</a>", "goat")
 
-    def test_element_lead(self):
+    def test_two_element_lead(self):
         self.check_result("<a>angry<b>goat</b></a>", "angrygoat")
 
-    def test_element_tail(self):
+    def test_two_element_tail(self):
         self.check_result("<a><b>power</b>goat</a>", "powergoat")
 
-    def test_two_element_all(self):
-        self.check_result("""<a>First<b>Second<c>Third</c>Fourth</b>Fifth</a>""", "FirstSecondThirdFourthFifth")
+    def test_three_element_all(self):
+        self.check_result("""<a>1<b>2<c>3</c>4</b>5</a>""", "12345")
 
-    def test_two_element_nested_tail(self):
+    def test_three_element_nested_tail(self):
         self.check_result("""<a><b><c>First</c></b>Last</a>""", "FirstLast")
 
-    def test_two_element_nested_lead(self):
+    def test_three_element_nested_lead(self):
         self.check_result("""<a>First<b><c>Last</c></b></a>""", "FirstLast")
 
+    def test_four_element_all(self):
+        self.check_result("""<a>1<b>2<c>3<d>4</d>5</c>6</b>7</a>""", "1234567")
 
 def xml2text(et):
     def _rec(elem):
