@@ -103,7 +103,8 @@ if __name__ == '__main__':
 
         ctxt = HaikuContextFactory(e)
         for elem in e.xpath('//talk.start/talker/../..'):
-            paras = elem.xpath('.//para|.//p')
+            # FIXME: borken.xml
+            paras = elem.xpath('./talk.text/body/p | ./talk.start/para | ./para | ./talk.text/para')
             elem_ctxt = ctxt.create(elem)
             if elem_ctxt is None:
                 continue
@@ -140,5 +141,5 @@ if __name__ == '__main__':
         n = make_haiku(xml_file)
         sys.stderr.write("%d\n" % n)
         sys.stderr.flush()
-    print("%d poems in the hansard." % (issuer.ngen))
+    print("%d haiku in the Hansard." % (issuer.ngen))
 
