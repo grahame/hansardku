@@ -21,7 +21,7 @@ class TextXml2Text(unittest.TestCase):
         self.check_result("<a><b>power</b>goat</a>", "powergoat")
 
     def test_complex(self):
-        self.check_result("""<a><b><c><d>First</d></c>Last</b></a>""", "FirstLast")
+        self.check_result("""<a><b><c>First</c></b>Last</a>""", "FirstLast")
 
 def xml2text(et):
     return (''.join([(t.text or '') + (t.tail or '') for t in et.xpath('. | .//*')])).strip()
