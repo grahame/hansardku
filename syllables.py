@@ -1,4 +1,4 @@
-import re, string
+import re, string, sys
 from lxml import etree
 
 def read_gcide_syllables(res):
@@ -20,7 +20,11 @@ class Syllables:
     def __init__(self):
         self.known = {}
         self.hit = self.miss = 0
-        # read_gcide_syllables(self.known)
+        sys.stderr.write("reading GCIDE...")
+        sys.stderr.flush()
+        read_gcide_syllables(self.known)
+        sys.stderr.write(" done\n")
+        sys.stderr.flush()
 
     def lookup(self, word):
         word = ''.join((t for t in word.lower() if t in string.ascii_letters))
