@@ -20,6 +20,9 @@ class TextXml2Text(unittest.TestCase):
     def test_element_tail(self):
         self.check_result("<a><b>power</b>goat</a>", "powergoat")
 
+    def test_two_element_all(self):
+        self.check_result("""<a>First<b>Second<c>Third</c>Fourth</b>Fifth</a>""", "FirstSecondThirdFourthFifth")
+
     def test_two_element_nested_tail(self):
         self.check_result("""<a><b><c>First</c></b>Last</a>""", "FirstLast")
 
