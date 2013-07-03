@@ -1,3 +1,6 @@
 [submodule "numword"]
 	path = numword
 	url = https://github.com/grahame/numword
+[submodule "couchdb-python3"]
+	path = couchdb-python3
+	url = https://github.com/lilydjwg/couchdb-python3

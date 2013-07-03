@@ -5,7 +5,7 @@ import re, sys
 sys.path.append('./numword')
 import numword
 
-def poem_finder(counter, stream, pattern, callback):
+def poem_finder(counter, stream, pattern):
     class Possibility:
         def __init__(self):
             self.lines = []
@@ -21,17 +21,23 @@ def poem_finder(counter, stream, pattern, callback):
                 self.line = []
                 self.line_count = 0
                 if len(self.lines) == len(pattern):
-                    callback(self.lines)
-                    return False
+                    return False, self.lines
             elif self.line_count > target:
-                return False
-            return True
+                return False, None
+            return True, None
 
     possibilities = []
     for word in stream:
         count = counter.lookup(word)
         possibilities.append(Possibility())
-        possibilities = list(filter(lambda p: p.add(count, word), possibilities))
+        next_possibilities = []
+        for possibility in possibilities:
+            cont, lines = possibility.add(count, word)
+            if lines:
+                yield lines
+            if cont:
+                next_possibilities.append(possibility)
+        possibilities = next_possibilities
 
 number_re = re.compile(r'^\d+$')
 def word_stream(line_iter):
@@ -50,12 +56,10 @@ def word_stream(line_iter):
 if __name__ == '__main__':
     import sys
 
-    def callback(poem):
+    haiku = [5, 7, 5]
+    counter = Syllables()
+
+    for poem in poem_finder(counter, word_stream((t.strip() for t in sys.stdin)), haiku):
         for line in poem:
             print(' '.join(line))
         print()
-
-    haiku = [5, 7, 5]
-    counter = Syllables()
-    poem_finder(counter, word_stream((t.strip() for t in sys.stdin)), haiku, callback)
-
