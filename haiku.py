@@ -38,8 +38,12 @@ def word_stream(line_iter):
     for line in line_iter:
         for word in (t.strip() for t in line.split()):
             if number_re.match(word):
-                for num_word in word_to_num(len(word), int(word)):
-                    yield num_word
+                if len(word) == 4:
+                    words = numword.year(int(word))
+                else:
+                    words = numword.cardinal(int(word))
+                for num_word in words:
+                    yield words
             else:
                 yield word
 
