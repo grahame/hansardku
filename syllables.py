@@ -20,7 +20,7 @@ class Syllables:
     def __init__(self):
         self.known = {}
         self.hit = self.miss = 0
-        read_gcide_syllables(self.known)
+        # read_gcide_syllables(self.known)
 
     def lookup(self, word):
         word = ''.join((t for t in word.lower() if t in string.ascii_letters))
