@@ -67,7 +67,7 @@ if __name__ == '__main__':
         def __init__(self, et):
             self.session = {
                 'date' : oneof(et, '/hansard/session.header/date'),
-                'parliament' : oneof(et, '/hansard/session.header/date'),
+                'parliament' : oneof(et, '/hansard/session.header/parliament.no'),
                 'session' : oneof(et, '/hansard/session.header/session.no'),
                 'period' : oneof(et, '/hansard/session.header/period.no'),
                 'chamber' : oneof(et, '/hansard/session.header/chamber'),
