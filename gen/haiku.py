@@ -2,7 +2,7 @@
 
 from syllables import Syllables
 import re, sys
-sys.path.append('./numword')
+sys.path.append('../numword')
 import numword
 
 class Poem:

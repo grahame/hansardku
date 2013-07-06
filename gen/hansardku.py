@@ -3,7 +3,7 @@
 from lxml import etree
 import sys, os
 from xml2text import xml2text
-sys.path.append('./couchdb-python3')
+sys.path.append('../couchdb-python3')
 import couchdb, itertools
 from haiku import word_stream, poem_finder, Syllables
 
