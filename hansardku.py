@@ -57,8 +57,8 @@ if __name__ == '__main__':
         def __init__(self, doc):
             self.doc = doc
 
-        def get(self, poem):
-            return couchdb.Document(_id=issuer.issue(), poem=poem, **self.doc)
+        def get(self, poem, kigo):
+            return couchdb.Document(_id=issuer.issue(), poem=poem, kigo=kigo, **self.doc)
 
     class HaikuContextFactory:
         tbl = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
@@ -122,7 +122,7 @@ if __name__ == '__main__':
         def get_haiku():
             for ctxt, para in para_iter(xml_file):
                 for poem in poem_finder(counter, word_stream(para), haiku):
-                    yield ctxt.get('\n'.join(' '.join(line) for line in poem))
+                    yield ctxt.get('\n'.join(' '.join(line) for line in poem.get()), poem.kigo())
 
         it = get_haiku()
         ndocs = 0

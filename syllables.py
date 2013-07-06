@@ -20,6 +20,7 @@ class Syllables:
     def __init__(self):
         self.known = {}
         self.hit = self.miss = 0
+        return
         sys.stderr.write("reading GCIDE...")
         sys.stderr.flush()
         read_gcide_syllables(self.known)
