@@ -6,7 +6,7 @@ from xml2text import xml2text
 import itertools
 from haiku import word_stream, poem_finder, Syllables
 from pprint import pprint
-from wsgiku import db, app, Haiku
+from wsgiku import db, app, Document, Haiku
 
 if __name__ == '__main__':
     def take(n, iterable):
@@ -45,51 +45,51 @@ if __name__ == '__main__':
 
     issuer = TokenIssuer()
 
-    class HaikuWrapper:
-        def __init__(self, **kwargs):
-            self.doc = kwargs
-            # generate UID
-            dg = hashlib.sha1((self.doc['talker_id']+':'+self.doc['poem']).encode('utf-8')).digest()
-            self.doc['poem_uid'] = ''.join(base62.encode(v % 62) for v in dg[:8])
-
-        def get(self):
-            return self.doc
-
     class HaikuContext:
-        def __init__(self, doc):
-            self.doc = doc
+        def __init__(self, **kwargs):
+            self.ctxt = kwargs
 
-        def get(self, poem):
-            return HaikuWrapper(id=issuer.issue(), poem=poem, **self.doc)
+        def get(self, doc, poem):
+            dg = hashlib.sha1(':'.join(map(str, [
+                doc.date,
+                doc.parliament,
+                doc.session,
+                doc.period,
+                doc.chamber,
+                self.ctxt['talker_id'],
+                poem])).encode('utf-8')).digest()
+            poem_uid = ''.join(base62.encode(v % 62) for v in dg[:8])
+            r = self.ctxt.copy()
+            r.update({
+                'id' : issuer.issue(),
+                'document_id' : doc.id,
+                'poem' : poem,
+                'poem_uid' : poem_uid,
+                })
+            return r
 
-    class HaikuContextFactory:
-        def __init__(self, et):
-            self.session = {
-                'date' : oneof(et, '/hansard/session.header/date'),
-                'parliament' : oneof(et, '/hansard/session.header/parliament.no'),
-                'session' : oneof(et, '/hansard/session.header/session.no'),
-                'period' : oneof(et, '/hansard/session.header/period.no'),
-                'chamber' : oneof(et, '/hansard/session.header/chamber'),
-            }
+    def make_haiku_context(elem):
+        name = oneof(elem, './talk.start/talker/name[@role="metadata"]')
+        if name is None:
+            name = oneof(elem, './talk.start/talker/name')
+        if name.upper().find("PRESIDENT") != -1 or name.upper().find("SPEAKER") != -1:
+            return None
+        return HaikuContext(
+            talker_id = oneof(elem, './talk.start/talker/name.id'),
+            talker = name,
+            party = oneof(elem, './talk.start/talker/party')
+        )
 
-        def create(self, elem):
-            name = oneof(elem, './talk.start/talker/name[@role="metadata"]')
-            if name is None:
-                name = oneof(elem, './talk.start/talker/name')
-            if name.upper().find("PRESIDENT") != -1 or name.upper().find("SPEAKER") != -1:
-                return None
-            doc = self.session.copy()
-            doc.update({
-                'talker_id' : oneof(elem, './talk.start/talker/name.id'),
-                'talker' : name,
-                'party' : oneof(elem, './talk.start/talker/party')
-            })
-            return HaikuContext(doc)
+    def make_document(et):
+        return Document(
+            date = oneof(et, '/hansard/session.header/date'),
+            parliament = oneof(et, '/hansard/session.header/parliament.no'),
+            session = oneof(et, '/hansard/session.header/session.no'),
+            period = oneof(et, '/hansard/session.header/period.no'),
+            chamber = oneof(et, '/hansard/session.header/chamber'),
+        )
 
-    def para_iter(xml_file):
-        with open(xml_file, 'rb') as fd:
-            e = etree.parse(fd)
-
+    def para_iter(e):
         killclass(e, "HPS-MemberIInterjecting", "p")
         killclass(e, "HPS-GeneralIInterjecting", "p")
         killclass(e, "HPS-MemberInterjecting", "p")
@@ -101,39 +101,52 @@ if __name__ == '__main__':
         killclass(e, "HPS-MemberContinuation")
         killclass(e, "HPS-MemberSpeech")
 
-        ctxt = HaikuContextFactory(e)
         for elem in e.xpath('//talk.start/talker/../..'):
             # FIXME: borken.xml
             paras = elem.xpath('./talk.text/body/p | ./talk.start/para | ./para | ./talk.text/para')
-            elem_ctxt = ctxt.create(elem)
+            elem_ctxt = make_haiku_context(elem)
             if elem_ctxt is None:
                 continue
             for para in paras:
                 lines = [t.strip() for t in xml2text(para).splitlines()]
                 yield elem_ctxt, lines
 
-    haiku = [5, 7, 5]
+    haiku_pattern = [5, 7, 5]
     counter = Syllables()
 
     db.create_all()
     db.session.commit()
 
     def make_haiku(xml_file):
-        csv_header = [ t.name for t in Haiku.__table__.columns ]
-        def get_haiku():
-            for ctxt, para in para_iter(xml_file):
-                for poem in poem_finder(counter, word_stream(para), haiku):
-                    yield ctxt.get('\n'.join(' '.join(line) for line in poem.get()))
+        def get_haiku(doc):
+            for ctxt, para in para_iter(e):
+                for poem in poem_finder(counter, word_stream(para), haiku_pattern):
+                    yield ctxt.get(doc, '\n'.join(' '.join(line) for line in poem.get()))
 
-        fname = os.path.abspath('tmp/out.csv')
-        with open(fname, 'w') as fd:
-            w = csv.writer(fd)
-            w.writerow(csv_header)
-            for idx, doc in enumerate(t.get() for t in get_haiku()):
-                w.writerow([str(doc[t]).replace('\n','') for t in csv_header])
-        conn = db.session.connection()
-        res = conn.execute('COPY %s FROM %%s CSV HEADER' % ('haiku'), (fname, ))
+        with open(xml_file, 'rb') as fd:
+            e = etree.parse(fd)
+
+        doc = make_document(e)
+        db.session.add(doc)
         db.session.commit()
+
+        outf = os.path.abspath('tmp/out.csv')
+        with open(outf, 'w') as fd:
+            w = csv.writer(fd)
+            header = [ t.name for t in Haiku.__table__.columns ]
+            uids = set()
+            for idx, haiku in enumerate(t for t in get_haiku(doc)):
+                uid = haiku['poem_uid']
+                if uid in uids:
+                    continue
+                uids.add(uid)
+                w.writerow([haiku[t] for t in header])
+
+        conn = db.session.connection()
+        res = conn.execute('COPY %s FROM %%s CSV' % ('haiku'), (outf, ))
+        db.session.commit()
+
+        os.unlink(outf)
         return idx+1
 
     files = sys.argv[1:]
