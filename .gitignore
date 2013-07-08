@@ -6,3 +6,4 @@ xml_files/
 *.pyc
 *.pyo
 .DS_Store
+localsettings.py
