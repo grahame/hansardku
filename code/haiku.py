@@ -2,8 +2,6 @@
 
 from syllables import Syllables
 import re, sys
-sys.path.append('../numword')
-import numword
 
 class Poem:
     def __init__(self, lines):
@@ -71,19 +69,10 @@ def poem_finder(counter, stream, pattern):
                 yield poem
         possibilites = [t for t in possibilities if t.is_alive()]
 
-number_re = re.compile(r'^\d+$')
 def word_stream(line_iter):
     for line in line_iter:
         for word in (t.strip() for t in line.split()):
-            if number_re.match(word):
-                if len(word) == 4:
-                    words = numword.year(int(word))
-                else:
-                    words = numword.cardinal(int(word))
-                for num_word in words:
-                    yield words
-            else:
-                yield word
+            yield word
 
 if __name__ == '__main__':
     import sys

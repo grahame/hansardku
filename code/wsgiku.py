@@ -30,8 +30,8 @@ class Document(db.Model):
 class Haiku(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     document_id = db.Column(db.Integer, db.ForeignKey('document.id'), index=True, nullable=False)
-    poem_uid = db.Column(db.String, nullable=False, index=True, unique=True)
-    talker_id = db.Column(db.String, nullable=False)
+    poem_uid = db.Column(db.String, nullable=False, index=True)
+    talker_id = db.Column(db.String, nullable=False, index=True)
     talker = db.Column(db.String, nullable=False, index=True)
     party = db.Column(db.String)
     poem = db.Column(db.Text, nullable=False)

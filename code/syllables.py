@@ -1,10 +1,12 @@
 import re, string, sys
 from lxml import etree
+sys.path.append('../numword')
+import numword
 
 def read_gcide_syllables(res):
     word_splitter = re.compile(r' |\t|-')
     accent_splitter = re.compile(r'[\*|\-|\"|\`]+')
-    with open('xml_files/gcide.xml', 'r') as fd:
+    with open('../xml_files/gcide.xml', 'r') as fd:
         doc = etree.parse(fd)
         for definition in (t.text.lower() for t in doc.xpath('//hw') if t.text is not None):
             for word in word_splitter.split(definition):
@@ -16,11 +18,12 @@ def read_gcide_syllables(res):
                 res[''.join(syllables)] = len(syllables)
         del doc
 
+number_re = re.compile(r'^\d+$')
+
 class Syllables:
     def __init__(self):
         self.known = {}
         self.hit = self.miss = 0
-        return
         sys.stderr.write("reading GCIDE...")
         sys.stderr.flush()
         read_gcide_syllables(self.known)
@@ -28,9 +31,18 @@ class Syllables:
         sys.stderr.flush()
 
     def lookup(self, word):
-        word = ''.join((t for t in word.lower() if t in string.ascii_letters))
+        word = ''.join((t for t in word.lower() if t in string.ascii_letters or t in string.digits))
         if word in self.known:
             return self.known[word]
+
+        if number_re.match(word):
+            iword = int(word)
+            if len(word) == 4:
+                words = numword.year(iword)
+            else:
+                words = numword.cardinal(iword)
+            return sum(self.lookup(word) for word in words)
+
         return self.__syllable_estimate(word)
 
     def __syllable_estimate(self, token):
