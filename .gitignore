@@ -1,5 +1,6 @@
 __pycache__
 cache/
+tmp/
 examples/
 xml_files/
 .*swp

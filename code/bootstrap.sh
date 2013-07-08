@@ -18,7 +18,8 @@ venv()
     fi
     # include system so we can pull in mapscript
     virtualenv --system-site-packages -p /usr/bin/python3.3 "$VENV_PATH"
-    "$VENV_PATH"/bin/pip install simplejson markdown flask flask-sqlalchemy
+    "$VENV_PATH"/bin/pip install simplejson markdown flask
+    "$VENV_PATH"/bin/pip install git+https://github.com/mitsuhiko/flask-sqlalchemy
 }
 
 venv

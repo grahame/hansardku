@@ -5,6 +5,8 @@ import sys, os
 from xml2text import xml2text
 import itertools
 from haiku import word_stream, poem_finder, Syllables
+from pprint import pprint
+from wsgiku import db, app, Haiku
 
 if __name__ == '__main__':
     def take(n, iterable):
@@ -47,12 +49,15 @@ if __name__ == '__main__':
         def __init__(self, **kwargs):
             self.doc = kwargs
 
+        def get(self):
+            return self.doc
+
     class HaikuContext:
         def __init__(self, doc):
             self.doc = doc
 
         def get(self, poem, kigo):
-            return HaikuWrapper(id=issuer.issue(), poem=poem, kigo=kigo, **self.doc)
+            return HaikuWrapper(poem_id=issuer.issue(), poem=poem, kigo=kigo, **self.doc)
 
     class HaikuContextFactory:
         def __init__(self, et):
@@ -72,8 +77,8 @@ if __name__ == '__main__':
                 return None
             doc = self.session.copy()
             doc.update({
-                'name.id' : oneof(elem, './talk.start/talker/name.id'),
-                'name' : name,
+                'talker_id' : oneof(elem, './talk.start/talker/name.id'),
+                'talker' : name,
                 'party' : oneof(elem, './talk.start/talker/party')
             })
             return HaikuContext(doc)
@@ -108,26 +113,24 @@ if __name__ == '__main__':
     counter = Syllables()
 
     def make_haiku(xml_file):
+        csv_header = [ t.name for t in Haiku.__table__.columns ][1:] # skip ID
         def get_haiku():
             for ctxt, para in para_iter(xml_file):
                 for poem in poem_finder(counter, word_stream(para), haiku):
                     yield ctxt.get('\n'.join(' '.join(line) for line in poem.get()), poem.kigo())
-
-        it = get_haiku()
-        ndocs = 0
-        while True:
-            docs = take(8192, it)
-            if len(docs) == 0:
-                break
-            print(docs[0])
-            ndocs += len(docs)
+        for doc in get_haiku():
+            print(set(csv_header) - set(doc.get()))
+            pprint(doc.get())
         return ndocs
+
+    db.create_all()
+    db.session.commit()
 
     files = sys.argv[1:]
     for i, xml_file in enumerate(sys.argv[1:]):
         sys.stderr.write("%d/%d: %s... " % (i+1, len(files), os.path.basename(xml_file)))
         sys.stderr.flush()
-        n = make_haiku(xml_file)
-        sys.stderr.write("%d\n" % n)
+        filename, doc_count = make_haiku(xml_file)
+        sys.stderr.write("%d\n" % (doc_count))
         sys.stderr.flush()
     print("%d haiku in the Hansard." % (issuer.ngen))
