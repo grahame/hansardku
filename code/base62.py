@@ -1,6 +1,6 @@
 import unittest
 
-chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 base = 62
 assert(len(chars) == base)
 
@@ -27,16 +27,15 @@ class TestBase62(unittest.TestCase):
         self.assertEqual(encode(f), t)        
 
     def test_0(self):
-        self.known(0, 'a')
+        self.known(0, '0')
 
     def test_1(self):
-        self.known(1, 'b')
+        self.known(1, '1')
 
     def test_chars(self):
         for n in range(1,5):
-            for c in chars:
+            for c in chars[1:]:
                 t = n*c
-                print(t, decode(t), encode(decode(t)))
                 self.assertEqual(encode(decode(t)), t)
 
     def test_base(self):
