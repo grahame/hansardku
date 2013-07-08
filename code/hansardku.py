@@ -34,17 +34,17 @@ if __name__ == '__main__':
 
     class TokenIssuer:
         def __init__(self):
-          self.ngen = 0
+            self.ngen = 0
 
         def issue(self):
-            v = int_id = self.ngen
+            r = self.ngen
             self.ngen += 1
-            return int_id
+            return r
 
     issuer = TokenIssuer()
 
     class HaikuWrapper:
-        def __init__(self, kwargs):
+        def __init__(self, **kwargs):
             self.doc = kwargs
 
     class HaikuContext:
@@ -55,9 +55,6 @@ if __name__ == '__main__':
             return HaikuWrapper(id=issuer.issue(), poem=poem, kigo=kigo, **self.doc)
 
     class HaikuContextFactory:
-        tbl = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-        tbl_len = len(tbl)
-
         def __init__(self, et):
             self.session = {
                 'date' : oneof(et, '/hansard/session.header/date'),
@@ -122,7 +119,7 @@ if __name__ == '__main__':
             docs = take(8192, it)
             if len(docs) == 0:
                 break
-            db.update(docs)
+            print(docs[0])
             ndocs += len(docs)
         return ndocs
 
