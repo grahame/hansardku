@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from lxml import etree
-import sys, os
+import sys, os, csv, hashlib, base62
 from xml2text import xml2text
 import itertools
 from haiku import word_stream, poem_finder, Syllables
@@ -48,6 +48,9 @@ if __name__ == '__main__':
     class HaikuWrapper:
         def __init__(self, **kwargs):
             self.doc = kwargs
+            # generate UID
+            dg = hashlib.sha1((self.doc['talker_id']+':'+self.doc['poem']).encode('utf-8')).digest()
+            self.doc['poem_uid'] = ''.join(base62.encode(v % 62) for v in dg[:8])
 
         def get(self):
             return self.doc
@@ -56,8 +59,8 @@ if __name__ == '__main__':
         def __init__(self, doc):
             self.doc = doc
 
-        def get(self, poem, kigo):
-            return HaikuWrapper(poem_id=issuer.issue(), poem=poem, kigo=kigo, **self.doc)
+        def get(self, poem):
+            return HaikuWrapper(id=issuer.issue(), poem=poem, **self.doc)
 
     class HaikuContextFactory:
         def __init__(self, et):
@@ -112,25 +115,32 @@ if __name__ == '__main__':
     haiku = [5, 7, 5]
     counter = Syllables()
 
+    db.create_all()
+    db.session.commit()
+
     def make_haiku(xml_file):
-        csv_header = [ t.name for t in Haiku.__table__.columns ][1:] # skip ID
+        csv_header = [ t.name for t in Haiku.__table__.columns ]
         def get_haiku():
             for ctxt, para in para_iter(xml_file):
                 for poem in poem_finder(counter, word_stream(para), haiku):
-                    yield ctxt.get('\n'.join(' '.join(line) for line in poem.get()), poem.kigo())
-        for doc in get_haiku():
-            print(set(csv_header) - set(doc.get()))
-            pprint(doc.get())
-        return ndocs
+                    yield ctxt.get('\n'.join(' '.join(line) for line in poem.get()))
 
-    db.create_all()
-    db.session.commit()
+        fname = os.path.abspath('tmp/out.csv')
+        with open(fname, 'w') as fd:
+            w = csv.writer(fd)
+            w.writerow(csv_header)
+            for idx, doc in enumerate(t.get() for t in get_haiku()):
+                w.writerow([str(doc[t]).replace('\n','') for t in csv_header])
+        conn = db.session.connection()
+        res = conn.execute('COPY %s FROM %%s CSV HEADER' % ('haiku'), (fname, ))
+        db.session.commit()
+        return idx+1
 
     files = sys.argv[1:]
     for i, xml_file in enumerate(sys.argv[1:]):
         sys.stderr.write("%d/%d: %s... " % (i+1, len(files), os.path.basename(xml_file)))
         sys.stderr.flush()
-        filename, doc_count = make_haiku(xml_file)
+        doc_count = make_haiku(xml_file)
         sys.stderr.write("%d\n" % (doc_count))
         sys.stderr.flush()
     print("%d haiku in the Hansard." % (issuer.ngen))
