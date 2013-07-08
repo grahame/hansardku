@@ -3,8 +3,7 @@
 from lxml import etree
 import sys, os
 from xml2text import xml2text
-sys.path.append('../couchdb-python3')
-import couchdb, itertools
+import itertools
 from haiku import word_stream, poem_finder, Syllables
 
 if __name__ == '__main__':
@@ -38,27 +37,22 @@ if __name__ == '__main__':
           self.ngen = 0
 
         def issue(self):
-            s = []
-            v = self.ngen
-            while True:
-                i = v % HaikuContextFactory.tbl_len
-                v -= i
-                v //= HaikuContextFactory.tbl_len
-                s.append(HaikuContextFactory.tbl[i])
-                if v == 0:
-                    break
-            r = ''.join(reversed(s))
+            v = int_id = self.ngen
             self.ngen += 1
-            return r
+            return int_id
 
     issuer = TokenIssuer()
+
+    class HaikuWrapper:
+        def __init__(self, kwargs):
+            self.doc = kwargs
 
     class HaikuContext:
         def __init__(self, doc):
             self.doc = doc
 
         def get(self, poem, kigo):
-            return couchdb.Document(_id=issuer.issue(), poem=poem, kigo=kigo, **self.doc)
+            return HaikuWrapper(id=issuer.issue(), poem=poem, kigo=kigo, **self.doc)
 
     class HaikuContextFactory:
         tbl = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
@@ -72,6 +66,7 @@ if __name__ == '__main__':
                 'period' : oneof(et, '/hansard/session.header/period.no'),
                 'chamber' : oneof(et, '/hansard/session.header/chamber'),
             }
+
         def create(self, elem):
             name = oneof(elem, './talk.start/talker/name[@role="metadata"]')
             if name is None:
@@ -112,9 +107,6 @@ if __name__ == '__main__':
                 lines = [t.strip() for t in xml2text(para).splitlines()]
                 yield elem_ctxt, lines
 
-    srv = couchdb.Server()
-    db = srv['hansardku']
-
     haiku = [5, 7, 5]
     counter = Syllables()
 
@@ -142,4 +134,3 @@ if __name__ == '__main__':
         sys.stderr.write("%d\n" % n)
         sys.stderr.flush()
     print("%d haiku in the Hansard." % (issuer.ngen))
-

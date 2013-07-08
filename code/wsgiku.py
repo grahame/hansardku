@@ -14,3 +14,13 @@ def generate_app():
     return app
 
 app = generate_app()
+db = SQLAlchemy(self.app)
+
+class Haiku(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, null=False)
+    parliament = db.Column(db.Integer, null=False)
+    session = db.Column(db.Integer, null=False)
+    period = db.Column(db.Integer, null=False)
+    chamber = db.Column(db.String, null=False)
+    text = db.Column(db.Text, null=False)

@@ -1,3 +1,3 @@
 #!/bin/zsh
 
-uwsgi --plugins http,python3 -s 127.0.0.1:8888 -w wsgiku:app --master -H ~/venv.haiku/ -p "$1" --lazy $*
+uwsgi_python33 -s 127.0.0.1:8888 -w wsgiku:app --master -H ~/venv.haiku/ -p "$1" --lazy $*
