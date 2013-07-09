@@ -14,23 +14,6 @@ class Poem:
     def get(self):
         return self.lines
 
-    spring = { 'spring', 'haru', 'warm', 'mist', 'haze', 'blossom', 'doll', 'frog', 'skylark', 'lark', 'warbler', 'whale', 'cherry', 'wildflower', 'flower' }
-    summer = { 'summer', 'dog', 'midsummer', 'hot', 'hotness', 'sweat', 'conditioning', 'pleiades', 'smog', 'sunset', 'field', 'meadow', 'waterfall', 'nap', 'siesta', 'nudity', 'nude', 'surfing', 'beach', 'volleyball', 'rollerblading', 'skateboarding', 'sushi', 'sunbathing', 'swimming', 'pool', 'cicada', 'cuckoo', 'jellyfish', 'mosquito', 'snakes', 'lily', 'lotus', 'sunflower', 'wisteria' }
-    autumn = { 'autumn', 'moon', 'typhoon', 'thunder', 'scarecrow', 'insect', 'insects', 'cricket', 'crickets', 'nashi', 'pear', 'leaves' }
-    winter = { 'winter', 'cold', 'snow', 'soup', 'pumpkin', 'hearth', 'rain' }
-    categories = { 'spring' : spring, 'summer' : summer, 'autumn' : autumn, 'winter' : winter }
-    word_re = re.compile(r'^([a-z]+)')
-
-    def kigo(self):
-        for line in self.lines:
-            for word in line:
-                m = Poem.word_re.match(word)
-                if not m: continue
-                word = m.groups()[0].lower()
-                for category in Poem.categories:
-                    if word in Poem.categories[category]:
-                        return category
-
 class Possibility:
     def __init__(self, pattern):
         self.pattern = pattern

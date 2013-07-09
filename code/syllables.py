@@ -19,6 +19,10 @@ def read_gcide_syllables(res):
         del doc
 
 number_re = re.compile(r'^\d+$')
+split_re = re.compile(r'\W+')
+
+def to_alphanum(word):
+    return ''.join((t for t in word.lower() if t in string.ascii_letters or t in string.digits))
 
 class Syllables:
     def __init__(self):
@@ -30,8 +34,7 @@ class Syllables:
         sys.stderr.write(" done\n")
         sys.stderr.flush()
 
-    def lookup(self, word):
-        word = ''.join((t for t in word.lower() if t in string.ascii_letters or t in string.digits))
+    def subword_lookup(self, word):
         if word in self.known:
             return self.known[word]
 
@@ -44,6 +47,10 @@ class Syllables:
             return sum(self.lookup(word) for word in words)
 
         return self.__syllable_estimate(word)
+
+    def lookup(self, word):
+        subwords = [to_alphanum(subword) for subword in split_re.split(word)]
+        return sum(self.subword_lookup(subword) for subword in subwords if subword)
 
     def __syllable_estimate(self, token):
         "Last resort syllable counter. Reasonably accurate in English." \
