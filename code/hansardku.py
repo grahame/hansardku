@@ -4,7 +4,7 @@ from lxml import etree
 import sys, os, csv, hashlib, base62, time, string
 from xml2text import xml2text
 import itertools
-from haiku import word_stream, poem_finder, Syllables
+from haiku import token_stream, poem_finder, Syllables
 from pprint import pprint
 from wsgiku import db, app, Document, Haiku
 
@@ -128,7 +128,7 @@ if __name__ == '__main__':
         with open(xml_file, 'rb') as fd:
             e = etree.parse(fd)
             for ctxt, para in para_iter(e):
-                for word in word_stream(para):
+                for token in token_stream(para):
                     word = ''.join((t for t in word.lower() if t in string.ascii_letters or t in string.digits))
                     if word not in words:
                         if n == False:
@@ -141,7 +141,7 @@ if __name__ == '__main__':
     def make_haiku(xml_file):
         def get_haiku(doc):
             for ctxt, para in para_iter(e):
-                for poem in poem_finder(counter, word_stream(para), haiku_pattern):
+                for poem in poem_finder(counter, token_stream(para), haiku_pattern):
                     yield ctxt.get(doc, '\n'.join(' '.join(line) for line in poem.get()))
 
         with open(xml_file, 'rb') as fd:
@@ -168,11 +168,11 @@ if __name__ == '__main__':
 
     files = sys.argv[1:]
     runtime = 0
-    for i, xml_file in enumerate(sys.argv[1:]):
-        print(i, xml_file)
-        stat_analysis(xml_file)
+    # for i, xml_file in enumerate(sys.argv[1:]):
+    #     print(i, xml_file)
+    #     stat_analysis(xml_file)
 
-    sys.exit(0)
+    # sys.exit(0)
     haiku_pattern = [5, 7, 5]
     counter = Syllables()
 
