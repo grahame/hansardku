@@ -122,22 +122,6 @@ if __name__ == '__main__':
     db.create_all()
     db.session.commit()
 
-    words = {}
-    def stat_analysis(xml_file):
-        n = False
-        with open(xml_file, 'rb') as fd:
-            e = etree.parse(fd)
-            for ctxt, para in para_iter(e):
-                for token in token_stream(para):
-                    word = ''.join((t for t in word.lower() if t in string.ascii_letters or t in string.digits))
-                    if word not in words:
-                        if n == False:
-                            print(word)
-                            n = True
-                        words[word] = 0
-                    words[word] += 1
-        print(len(words))
-
     def make_haiku(xml_file):
         def get_haiku(doc):
             for ctxt, para in para_iter(e):
@@ -152,11 +136,16 @@ if __name__ == '__main__':
         db.session.commit()
 
         idx = 0
+        written = set()
         outf = os.path.abspath('tmp/out.csv')
         with open(outf, 'w') as fd:
             w = csv.writer(fd)
             header = [ t.name for t in Haiku.__table__.columns ]
             for idx, haiku in enumerate(t for t in get_haiku(doc)):
+                uid = haiku['poem_uid']
+                if uid in written:
+                    continue
+                written.add(uid)
                 w.writerow([haiku[t] for t in header])
 
         conn = db.session.connection()
@@ -168,14 +157,9 @@ if __name__ == '__main__':
 
     files = sys.argv[1:]
     runtime = 0
-    # for i, xml_file in enumerate(sys.argv[1:]):
-    #     print(i, xml_file)
-    #     stat_analysis(xml_file)
 
-    # sys.exit(0)
     haiku_pattern = [5, 7, 5]
     counter = Syllables()
-
 
     for i, xml_file in enumerate(sys.argv[1:]):
         start_time = time.time()
