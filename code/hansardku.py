@@ -45,12 +45,16 @@ if __name__ == '__main__':
 
     issuer = TokenIssuer()
 
+    def base62_sha1(s):
+        digest = hashlib.sha1(s.encode('utf-8')).digest()
+        return ''.join(base62.encode(v % 62) for v in digest[:8])
+
     class HaikuContext:
         def __init__(self, **kwargs):
             self.ctxt = kwargs
 
         def get(self, doc, poem):
-            dg = hashlib.sha1(':'.join(map(str, [
+            poem_uid = base62_sha1(':'.join(map(str, [
                 doc.filename,
                 doc.date,
                 doc.parliament,
@@ -58,8 +62,7 @@ if __name__ == '__main__':
                 doc.period,
                 doc.chamber,
                 self.ctxt['talker_id'],
-                poem])).encode('utf-8')).digest()
-            poem_uid = ''.join(base62.encode(v % 62) for v in dg[:8])
+                poem])))
             r = self.ctxt.copy()
             r.update({
                 'id' : issuer.issue(),
@@ -140,12 +143,7 @@ if __name__ == '__main__':
         with open(outf, 'w') as fd:
             w = csv.writer(fd)
             header = [ t.name for t in Haiku.__table__.columns ]
-            uids = set()
             for idx, haiku in enumerate(t for t in get_haiku(doc)):
-                uid = haiku['poem_uid']
-                if uid in uids:
-                    continue
-                uids.add(uid)
                 w.writerow([haiku[t] for t in header])
 
         conn = db.session.connection()
@@ -164,7 +162,7 @@ if __name__ == '__main__':
         doc_count = make_haiku(xml_file)
         duration = time.time() - start_time
         if duration > 0:
-            rate_s = ", %.1f haiku/s" % (doc_count/duration)
+            rate_s = ", %.1f haiku/s" % doc_count/duration
         runtime += duration
         time_per_file = runtime / (i + 1)
         eta = time_per_file * (len(files) - (i+1))
