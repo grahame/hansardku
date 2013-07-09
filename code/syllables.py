@@ -21,6 +21,11 @@ def read_gcide_syllables(res):
 number_re = re.compile(r'^\d+$')
 
 class Syllables:
+    check_suffixes = (None, 'esque', 'able', 'ible', 'ance',
+        'ical', 'ious', 'ence', 'ment', 'ness', 'ship', 'less', 'sion',
+        'tion', 'ical', 'ous', 'ful', 'ate', 'ify', 'ive', 'ing', 'ize',
+        'ise', 'ism', 'ic', 'ist', 'er', 'fy', 'or', 'en', 'y')
+
     def __init__(self):
         self.known = {}
         self.hit = self.miss = 0
@@ -30,9 +35,23 @@ class Syllables:
         sys.stderr.write(" done\n")
         sys.stderr.flush()
 
+    def check_known(self, word, suffix):
+        if suffix is not None and not word.endswith(suffix):
+            return
+        if suffix is not None:
+            word = word[:-len(suffix)]
+        if word not in self.known:
+            return
+        r = self.known[word]
+        if suffix is not None:
+            r += self.__syllable_estimate(suffix)
+        return r
+
     def lookup(self, word):
-        if word in self.known:
-            return self.known[word]
+        for suffix in Syllables.check_suffixes:
+            l = self.check_known(word, suffix)
+            if l is not None:
+                return l
 
         if number_re.match(word):
             iword = int(word)
