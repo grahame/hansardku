@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from lxml import etree
-import sys, os, csv, hashlib, base62, time
+import sys, os, csv, hashlib, base62, time, string
 from xml2text import xml2text
 import itertools
 from haiku import word_stream, poem_finder, Syllables
@@ -119,11 +119,24 @@ if __name__ == '__main__':
                 lines = [t.strip() for t in xml2text(para).splitlines()]
                 yield elem_ctxt, lines
 
-    haiku_pattern = [5, 7, 5]
-    counter = Syllables()
-
     db.create_all()
     db.session.commit()
+
+    words = {}
+    def stat_analysis(xml_file):
+        n = False
+        with open(xml_file, 'rb') as fd:
+            e = etree.parse(fd)
+            for ctxt, para in para_iter(e):
+                for word in word_stream(para):
+                    word = ''.join((t for t in word.lower() if t in string.ascii_letters or t in string.digits))
+                    if word not in words:
+                        if n == False:
+                            print(word)
+                            n = True
+                        words[word] = 0
+                    words[word] += 1
+        print(len(words))
 
     def make_haiku(xml_file):
         def get_haiku(doc):
@@ -156,13 +169,22 @@ if __name__ == '__main__':
     files = sys.argv[1:]
     runtime = 0
     for i, xml_file in enumerate(sys.argv[1:]):
+        print(i, xml_file)
+        stat_analysis(xml_file)
+
+    sys.exit(0)
+    haiku_pattern = [5, 7, 5]
+    counter = Syllables()
+
+
+    for i, xml_file in enumerate(sys.argv[1:]):
         start_time = time.time()
         sys.stderr.write("%d/%d: %s... " % (i+1, len(files), os.path.basename(xml_file)))
         sys.stderr.flush()
         doc_count = make_haiku(xml_file)
         duration = time.time() - start_time
         if duration > 0:
-            rate_s = ", %.1f haiku/s" % doc_count/duration
+            rate_s = ", %.1f haiku/s" % (doc_count/duration)
         runtime += duration
         time_per_file = runtime / (i + 1)
         eta = time_per_file * (len(files) - (i+1))
