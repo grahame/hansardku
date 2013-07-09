@@ -17,6 +17,7 @@ db = SQLAlchemy(app)
 
 class Document(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String, nullable=False)
     date = db.Column(db.Date, nullable=False)
     parliament = db.Column(db.Integer, nullable=False)
     session = db.Column(db.Integer, nullable=False)

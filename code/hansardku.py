@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from lxml import etree
-import sys, os, csv, hashlib, base62
+import sys, os, csv, hashlib, base62, time
 from xml2text import xml2text
 import itertools
 from haiku import word_stream, poem_finder, Syllables
@@ -51,6 +51,7 @@ if __name__ == '__main__':
 
         def get(self, doc, poem):
             dg = hashlib.sha1(':'.join(map(str, [
+                doc.filename,
                 doc.date,
                 doc.parliament,
                 doc.session,
@@ -83,8 +84,9 @@ if __name__ == '__main__':
             party = oneof(elem, './talk.start/talker/party')
         )
 
-    def make_document(et):
+    def make_document(filename, et):
         return Document(
+            filename = os.path.basename(filename), 
             date = oneof(et, '/hansard/session.header/date'),
             parliament = oneof(et, '/hansard/session.header/parliament.no'),
             session = oneof(et, '/hansard/session.header/session.no'),
@@ -129,10 +131,11 @@ if __name__ == '__main__':
         with open(xml_file, 'rb') as fd:
             e = etree.parse(fd)
 
-        doc = make_document(e)
+        doc = make_document(xml_file, e)
         db.session.add(doc)
         db.session.commit()
 
+        idx = 0
         outf = os.path.abspath('tmp/out.csv')
         with open(outf, 'w') as fd:
             w = csv.writer(fd)
@@ -153,10 +156,22 @@ if __name__ == '__main__':
         return idx+1
 
     files = sys.argv[1:]
+    runtime = 0
     for i, xml_file in enumerate(sys.argv[1:]):
+        start_time = time.time()
         sys.stderr.write("%d/%d: %s... " % (i+1, len(files), os.path.basename(xml_file)))
         sys.stderr.flush()
         doc_count = make_haiku(xml_file)
-        sys.stderr.write("%d\n" % (doc_count))
+        duration = time.time() - start_time
+        if duration > 0:
+            rate_s = ", %.1f haiku/s" % (doc_count/duration)
+        runtime += duration
+        time_per_file = runtime / (i + 1)
+        eta = time_per_file * (len(files) - (i+1))
+        eta_m = eta//60
+        eta -= eta_m*60
+        eta_h = eta_m//60
+        eta_m -= eta_h*60
+        sys.stderr.write("(%d haiku in %.2fs%s, ETA %dh%dm)\n" % (doc_count, duration, rate_s, eta_h, eta_m))
         sys.stderr.flush()
     print("%d haiku in the Hansard." % (issuer.ngen))
