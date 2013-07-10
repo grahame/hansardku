@@ -37,3 +37,19 @@ class Haiku(db.Model):
     party = db.Column(db.String)
     poem = db.Column(db.Text, nullable=False)
 
+class HaikuTrail(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String, nullable=False)
+    ends_at = db.Column(db.Integer, nullable=False)
+    entries = db.relationship('HaikuTrailEntry',
+        backref=db.backref('haiku_trail'),
+        cascade="all",
+        lazy='dynamic')
+
+class HaikuTrailEntry(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    trail = db.Column(db.Integer, db.ForeignKey('haiku_trail.id'), nullable=False)
+    trail_index = db.Column(db.Integer, nullable=False)
+    from_haiku = db.Column(db.Integer, db.ForeignKey('haiku.id'), nullable=False)
+    to_haiku = db.Column(db.Integer, db.ForeignKey('haiku.id'), nullable=False)
+    __table_args__ = (db.Index('trail_from', "trail", "from_haiku"), db.Index('trail_to', "trail", "to_haiku"), db.UniqueConstraint('trail', 'trail_idx'))
