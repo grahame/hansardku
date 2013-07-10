@@ -6,6 +6,14 @@
     color: black;
 }
 
+.highbtn {
+    font-size: 150%!important;
+}
+
+.intro {
+    text-align: center;
+}
+
 blockquote{
     position:relative;
     padding-top: 2em;
@@ -51,6 +59,11 @@ blockquote cite:before {
 }
 #scroll-off-space {
     height: 300px;
-
 }
 
+@media (max-width: 767px) {
+  body {
+    padding-right: 0 !important;
+    padding-left: 0 !important;
+  }
+}
