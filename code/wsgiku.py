@@ -52,4 +52,4 @@ class HaikuTrailEntry(db.Model):
     trail_index = db.Column(db.Integer, nullable=False)
     from_haiku = db.Column(db.Integer, db.ForeignKey('haiku.id'), nullable=False)
     to_haiku = db.Column(db.Integer, db.ForeignKey('haiku.id'), nullable=False)
-    __table_args__ = (db.Index('trail_from', "trail_id", "from_haiku"), db.Index('trail_to', "trail_id", "to_haiku"), db.UniqueConstraint('trail_id', 'trail_index'))
+    __table_args__ = (db.Index('trail_from', "trail_id", "from_haiku"), db.Index('trail_to', "trail_id", "to_haiku"))
