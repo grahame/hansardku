@@ -40,7 +40,7 @@ class Haiku(db.Model):
 class HaikuTrail(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     key = db.Column(db.String, nullable=False)
-    ends_at = db.Column(db.Integer, nullable=False)
+    length = db.Column(db.Integer, nullable=False)
     entries = db.relationship('HaikuTrailEntry',
         backref=db.backref('haiku_trail'),
         cascade="all",
@@ -48,8 +48,8 @@ class HaikuTrail(db.Model):
 
 class HaikuTrailEntry(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    trail = db.Column(db.Integer, db.ForeignKey('haiku_trail.id'), nullable=False)
+    trail_id = db.Column(db.Integer, db.ForeignKey('haiku_trail.id'), nullable=False)
     trail_index = db.Column(db.Integer, nullable=False)
     from_haiku = db.Column(db.Integer, db.ForeignKey('haiku.id'), nullable=False)
     to_haiku = db.Column(db.Integer, db.ForeignKey('haiku.id'), nullable=False)
-    __table_args__ = (db.Index('trail_from', "trail", "from_haiku"), db.Index('trail_to', "trail", "to_haiku"), db.UniqueConstraint('trail', 'trail_idx'))
+    __table_args__ = (db.Index('trail_from', "trail_id", "from_haiku"), db.Index('trail_to', "trail_id", "to_haiku"), db.UniqueConstraint('trail_id', 'trail_index'))
