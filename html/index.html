@@ -6,8 +6,8 @@
   <meta charset="utf-8" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
   <link href="hansardku.css" rel="stylesheet" />
   <script src="bootstrap/js/bootstrap.min.js"></script>
@@ -15,8 +15,12 @@
 </head>
 <body>
 
+<div class="page-header">
+    <h1>hansardku</h1>
+</div>
+
 <div class="row">
-<div class="span12">
+<div class="offset2 span8">
   <blockquote class="poem-body">
     <div class="l1">first&nbsp;introduction</div>
     <div class="l2">to&nbsp;the&nbsp;Greens&nbsp;party&nbsp;was&nbsp;when</div>
@@ -25,6 +29,21 @@
   </blockquote>
 </div>
 </div>
+
+<div class="row">
+<div class="offset2 span8">
+    <div class="row">
+    <div class="span4">
+    <button class="btn btn-block">Prev</button>
+    </div>
+    <div class="span4">
+    <button class="btn btn-block">Next</button>
+    </div>
+    </div>
+</div>
+</div>
+
+<div id="scroll-off-space" class="visible-phone"></div>
 
 </body>
 </html>

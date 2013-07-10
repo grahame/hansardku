@@ -36,12 +36,10 @@ if __name__ == '__main__':
         debug("%d\n" % trail_length)
         ids = numpy.ndarray(trail_length, dtype=int)
         ny = 100000
-        per = trail_length/10
         debug("load haiku IDs: ")
         for idx, row in enumerate(query.yield_per(ny)):
-            if idx % per == 0:
-                debug("%d%% .. " % ((idx/trail_length)*100))
             ids[idx] = row[0]
+        assert(idx == trail_length - 1)
         numpy.random.shuffle(ids)
         debug("done.\n")
         trail = HaikuTrail(key=name, length=trail_length)
@@ -57,15 +55,17 @@ if __name__ == '__main__':
         debug("importing CSV: ")
         conn = db.session.connection()
         res = conn.execute('COPY %s FROM %%s CSV' % ('haiku_trail_entry'), (trail_csv, ))
+        os.unlink(trail_csv)
         db.session.commit()
         debug("done.\n")
 
     debug("determining talkers... ")
     talker_query = db.session.query(Haiku.talker_id).group_by(Haiku.talker_id)
-    ntalkers = talker_query.count()
+    talkers = [t[0] for t in talker_query.all()]
+    talkers.sort()
     debug("done.\n")
-    for idx, (talker_id,) in enumerate(db.session.query(Haiku.talker_id).group_by(Haiku.talker_id).all()):
-        debug("(%d/%d) %s\n" % (idx+1, ntalkers, talker_id))
+    for idx, talker_id in enumerate(talkers):
+        debug("(%d/%d) %s\n" % (idx+1, len(talkers), talker_id))
         build_trail("/talker/" + talker_id, base_query.filter(Haiku.talker_id==talker_id))
     build_trail("/", base_query)
 
