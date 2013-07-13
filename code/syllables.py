@@ -1,11 +1,17 @@
-import re, string, sys
+import re, string, sys, os, json
 from lxml import etree
 sys.path.append('../numword')
 import numword
 
-def read_gcide_syllables(res):
+def read_gcide_syllables():
+    gcide_filename = 'tmp/gcide.json'
+    if os.access(gcide_filename, os.R_OK):
+        with open(gcide_filename, 'r') as fd:
+            return json.load(fd)
+
     word_splitter = re.compile(r' |\t|-')
     accent_splitter = re.compile(r'[\*|\-|\"|\`]+')
+    res = {}
     with open('../xml_files/gcide.xml', 'r') as fd:
         doc = etree.parse(fd)
         for definition in (t.text.lower() for t in doc.xpath('//hw') if t.text is not None):
@@ -17,6 +23,11 @@ def read_gcide_syllables(res):
                     continue
                 res[''.join(syllables)] = len(syllables)
         del doc
+
+    with open(gcide_filename, 'w') as fd:
+        json.dump(res, fd)
+    return res
+
 
 number_re = re.compile(r'^\d+$')
 
@@ -31,7 +42,7 @@ class Syllables:
         self.hit = self.miss = 0
         sys.stderr.write("reading GCIDE...")
         sys.stderr.flush()
-        read_gcide_syllables(self.known)
+        self.known = read_gcide_syllables()
         sys.stderr.write(" done\n")
         sys.stderr.flush()
 

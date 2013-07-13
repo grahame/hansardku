@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-from syllables import Syllables
 import re, sys, string
+import unittest
 
 class Poem:
     def __init__(self, lines):
