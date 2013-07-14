@@ -66,13 +66,12 @@ class Syllables:
             else:
                 fn = numword.cardinal
             words = fn(iword).split()
-            print("number lookup:", iword, words)
             return sum(self.lookup(word) for word in words)
         return self.__syllable_estimate(word)
 
     def lookup(self, *args, **kwargs):
         r = self._lookup(*args, **kwargs)
-        print(args, kwargs, r)
+        # print(args, kwargs, r)
         return r
 
     def __syllable_estimate(self, token):

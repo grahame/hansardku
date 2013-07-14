@@ -84,7 +84,7 @@ class TokenCountTest(unittest.TestCase):
     def test_simple(self):
         self.check_count("the", 1)
 
-    def test_number(self):
+    def check_number(self, mutator=None):
         counts = {
             "0": 2,
             "1": 1,
@@ -97,10 +97,20 @@ class TokenCountTest(unittest.TestCase):
             "8": 1,
             "9": 1,
             "10": 1,
-            "11": 3
+            "11": 3,
+            "110": 5,
+            "1000": 3,
             }
         for i, v in sorted(counts.items()):
+            if mutator is not None:
+                i = mutator(i)
             self.check_count(i, v)
+
+    def test_number(self):
+        self.check_number()
+
+    def test_dollars(self):
+        self.check_number(lambda n: '$'+n)
 
     def test_leading_punctuation(self):
         self.check_count("the", 1)
