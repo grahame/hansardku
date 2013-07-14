@@ -44,7 +44,7 @@ class Possibility:
 
 split_re = re.compile(r'\W+')
 def to_alphanum(word):
-    return ''.join((t for t in word.lower() if t in string.ascii_letters or t in string.digits))
+    return ''.join((t for t in word if t in string.ascii_letters or t in string.digits))
 
 def token_subwords(token):
     return [to_alphanum(subword) for subword in split_re.split(token)]
@@ -121,6 +121,9 @@ class TokenCountTest(unittest.TestCase):
 
     def test_suffix(self):
         self.check_count('lockness', 2)
+
+    def test_acronym(self):
+        self.check_count('IAEA', 4)
 
 if __name__ == '__main__':
     unittest.main()

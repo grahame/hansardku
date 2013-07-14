@@ -6,7 +6,7 @@ from xml2text import xml2text
 import itertools
 from haiku import token_stream, poem_finder, Syllables
 from pprint import pprint
-from wsgiku import db, app, Document, Haiku
+from wsgiku import db, app, Document, Haiku, HaikuTrail
 
 if __name__ == '__main__':
     def take(n, iterable):
@@ -36,12 +36,23 @@ if __name__ == '__main__':
 
     class TokenIssuer:
         def __init__(self):
-            self.ngen = 0
+            self.trails = {}
 
-        def issue(self):
-            r = self.ngen
-            self.ngen += 1
+        def issue_for(self, t):
+            if t not in self.trails:
+                self.trails[t] = 0
+            r = self.trails[t]
+            self.trails[t] += 1
             return r
+
+        def get_ngen(self, t):
+            return self.trails[t]
+
+        def make_trails(self):
+            for trail in sorted(self.trails):
+                trail = HaikuTrail(key=trail, length=self.trails[trail])
+                db.session.add(trail)
+                db.session.commit()
 
     issuer = TokenIssuer()
 
@@ -65,10 +76,11 @@ if __name__ == '__main__':
                 poem])))
             r = self.ctxt.copy()
             r.update({
-                'id' : issuer.issue(),
                 'document_id' : doc.id,
                 'poem' : poem,
                 'poem_uid' : poem_uid,
+                'poem_index' : issuer.issue_for('/'),
+                'talker_index' : issuer.issue_for('/talker/' + r['talker_id'])
                 })
             return r
 
@@ -178,4 +190,7 @@ if __name__ == '__main__':
         eta_m -= eta_h*60
         sys.stderr.write("(%d haiku in %.2fs%s, ETA %dh%dm)\n" % (doc_count, duration, rate_s, eta_h, eta_m))
         sys.stderr.flush()
-    print("%d haiku in the Hansard." % (issuer.ngen))
+    print("%d haiku in the Hansard." % (issuer.get_ngen('/')))
+
+    issuer.make_trails()
+

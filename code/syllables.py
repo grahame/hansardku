@@ -55,10 +55,8 @@ class Syllables:
         return r
 
     def _lookup(self, word):
-        for suffix in Syllables.check_suffixes:
-            l = self.check_known(word, suffix)
-            if l is not None:
-                return l
+        lower_word = word.lower()
+        # numbers
         if number_re.match(word):
             iword = int(word)
             if len(word) == 4:
@@ -67,16 +65,26 @@ class Syllables:
                 fn = numword.cardinal
             words = fn(iword).split()
             return sum(self.lookup(word) for word in words)
-        return self.__syllable_estimate(word)
+        # acronyms – which don't contain numbers
+        n_numbers = len([t for t in word if t in string.digits])
+        if n_numbers == 0 and len(word) > 1 and (word.upper() == word):
+            print("acronym", word, len(word))
+            return len(word)
+        # world lookup
+        for suffix in Syllables.check_suffixes:
+            l = self.check_known(lower_word, suffix)
+            if l is not None:
+                return l
+        # fallback if we can't find the word
+        return self.__syllable_estimate(lower_word)
 
     def lookup(self, *args, **kwargs):
         r = self._lookup(*args, **kwargs)
-        # print(args, kwargs, r)
+        print(args, kwargs, r)
         return r
 
     def __syllable_estimate(self, token):
-        "Last resort syllable counter. Reasonably accurate in English." \
-        "Allegedly works for French."
+        "Last resort syllable counter. Reasonably accurate in English."
         vowels = ['a', 'e', 'i', 'o', 'u', 'y', "'"]
         l = None
         count = 0

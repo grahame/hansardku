@@ -29,27 +29,17 @@ class Document(db.Model):
         lazy='dynamic')
 
 class Haiku(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    document_id = db.Column(db.Integer, db.ForeignKey('document.id'), index=True, nullable=False)
+    document_id = db.Column(db.Integer, db.ForeignKey('document.id'), nullable=False)
     poem_uid = db.Column(db.String, nullable=False, index=True)
     talker_id = db.Column(db.String, nullable=False, index=True)
-    talker = db.Column(db.String, nullable=False, index=True)
+    talker = db.Column(db.String, nullable=False)
     party = db.Column(db.String)
     poem = db.Column(db.Text, nullable=False)
+    # trails    
+    poem_index = db.Column(db.Integer, primary_key=True)
+    talker_index = db.Column(db.Integer, index=True, nullable=False)
 
 class HaikuTrail(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     key = db.Column(db.String, nullable=False)
     length = db.Column(db.Integer, nullable=False)
-    entries = db.relationship('HaikuTrailEntry',
-        backref=db.backref('haiku_trail'),
-        cascade="all",
-        lazy='dynamic')
-
-class HaikuTrailEntry(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    trail_id = db.Column(db.Integer, db.ForeignKey('haiku_trail.id'), nullable=False)
-    trail_index = db.Column(db.Integer, nullable=False)
-    from_haiku = db.Column(db.Integer, db.ForeignKey('haiku.id'), nullable=False)
-    to_haiku = db.Column(db.Integer, db.ForeignKey('haiku.id'), nullable=False)
-    __table_args__ = (db.Index('trail_from', "trail_id", "from_haiku"), db.Index('trail_to', "trail_id", "to_haiku"))
