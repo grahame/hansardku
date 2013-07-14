@@ -115,5 +115,9 @@ class TokenCountTest(unittest.TestCase):
     def test_leading_punctuation(self):
         self.check_count("the", 1)
 
+    def test_hyphenated(self):
+        for hyphen in ['-', '–']:
+            self.check_count(hyphen.join(['one', 'thousand']), 3)
+
 if __name__ == '__main__':
     unittest.main()
