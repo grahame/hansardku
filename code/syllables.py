@@ -67,7 +67,7 @@ class Syllables:
             return sum(self.lookup(word) for word in words)
         # acronyms – which don't contain numbers
         n_numbers = len([t for t in word if t in string.digits])
-        if n_numbers == 0 and len(word) > 1 and (word.upper() == word):
+        if n_numbers == 0 and len(word) > 1 and len(word) < 5 and (word.upper() == word):
             print("acronym", word, len(word))
             return len(word)
         # world lookup
