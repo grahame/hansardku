@@ -119,5 +119,8 @@ class TokenCountTest(unittest.TestCase):
         for hyphen in ['-', '–']:
             self.check_count(hyphen.join(['one', 'thousand']), 3)
 
+    def test_suffix(self):
+        self.check_count('lockness', 2)
+
 if __name__ == '__main__':
     unittest.main()
