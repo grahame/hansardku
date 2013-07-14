@@ -79,7 +79,7 @@ if __name__ == '__main__':
                 'document_id' : doc.id,
                 'poem' : poem,
                 'poem_uid' : poem_uid,
-                'poem_index' : issuer.issue_for(''),
+                'poem_index' : issuer.issue_for('all'),
                 'talker_index' : issuer.issue_for('talker=' + r['talker_id'])
                 })
             return r
@@ -190,7 +190,7 @@ if __name__ == '__main__':
         eta_m -= eta_h*60
         sys.stderr.write("(%d haiku in %.2fs%s, ETA %dh%dm)\n" % (doc_count, duration, rate_s, eta_h, eta_m))
         sys.stderr.flush()
-    print("%d haiku in the Hansard." % (issuer.get_ngen('')))
+    print("%d haiku in the Hansard." % (issuer.get_ngen('all')))
 
     issuer.make_trails()
 

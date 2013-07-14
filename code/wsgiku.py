@@ -44,7 +44,59 @@ class HaikuTrail(db.Model):
     key = db.Column(db.String, nullable=False)
     length = db.Column(db.Integer, nullable=False)
 
-@app.route("/api/0.1/haiku")
-def get_haiku():
-    return jsonify(poem)
+class PoemFinder:
+    # pattern credit: http://stackoverflow.com/questions/42558/python-and-the-singleton-pattern
+    _instance = None
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(PoemFinder, cls).__new__(cls, *args, **kwargs)
+            cls._instance._made = False
+        return cls._instance
 
+    def __init__(self):
+        # load in the trails
+        self.trails = {}
+        for trail in db.session.query(HaikuTrail).all():
+            self.trails[trail.key] = trail
+
+    def poem_for_trail(self, trail, at_row=None):
+        npossible = self.trails[trail].length
+        if at_row is not None:
+            npossible -= 1
+        idx = int(random.random() * npossible)
+        if at_row is not None:
+            if idx >= at_row:
+                idx += 1
+        if trail.startswith('talker='):
+            tid = trail.split('=', 1)
+            poem = db.session.query(Haiku).filter(Haiku.talker_id==tid, Haiku.talker_index==idx).one()
+        elif trail == 'all':
+            poem = db.session.query(Haiku).filter(Haiku.poem_index==idx).one()
+        else:
+            return
+        return {
+            'text': poem.poem,
+            'hash': poem.poem_uid,
+            'talker_id': poem.talker_id,
+            'talker': poem.talker,
+            'party' : poem.party,
+            'date': poem.document.date.strftime("%Y"),
+            'talker_index': poem.talker_index,
+            'poem_index': poem.poem_index
+        }
+
+@app.route("/api/0.1/haiku/<path>")
+def get_haiku(path):
+    finder = PoemFinder()
+    data = finder.poem_for_trail(path)
+    if data is None:
+        abort(404)
+    return jsonify(data)
+
+@app.route("/api/0.1/haiku/<path>/<from_index>")
+def get_haiku(path, from_index):
+    finder = PoemFinder()
+    data = finder.poem_for_trail(path, from_index)
+    if data is None:
+        abort(404)
+    return jsonify(data)
