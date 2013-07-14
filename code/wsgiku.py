@@ -43,3 +43,8 @@ class HaikuTrail(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     key = db.Column(db.String, nullable=False)
     length = db.Column(db.Integer, nullable=False)
+
+@app.route("/api/0.1/haiku")
+def get_haiku():
+    return jsonify(poem)
+
