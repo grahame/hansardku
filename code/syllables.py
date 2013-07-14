@@ -29,7 +29,7 @@ def read_gcide_syllables():
     return res
 
 
-number_re = re.compile(r'^\d+$')
+number_re = re.compile(r'^\d+(\.\d+)?$')
 
 class Syllables:
     check_suffixes = (None, 'esque', 'able', 'ible', 'ance',
@@ -68,7 +68,6 @@ class Syllables:
         # acronyms – which don't contain numbers
         n_numbers = len([t for t in word if t in string.digits])
         if n_numbers == 0 and len(word) > 1 and len(word) < 5 and (word.upper() == word):
-            print("acronym", word, len(word))
             return len(word)
         # world lookup
         for suffix in Syllables.check_suffixes:
