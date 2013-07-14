@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from syllables import Syllables
 import re, sys, string
 import unittest
 
@@ -48,13 +49,15 @@ def to_alphanum(word):
 def token_subwords(token):
     return [to_alphanum(subword) for subword in split_re.split(token)]
 
+def token_syllable_count(counter, token):
+    subwords = token_subwords(token)
+    return sum(counter.lookup(subword) for subword in subwords if subword)
+
 def poem_finder(counter, stream, pattern):
     possibilities = []
     for token in stream:
-        subwords = token_subwords(token)
-        count = sum(counter.lookup(subword) for subword in subwords if subword)
+        count = token_syllable_count(counter, token)
         possibilities.append(Possibility(pattern))
-
         for possibility in possibilities:
             poem = possibility.add(count, token)
             if poem:
@@ -66,13 +69,42 @@ def token_stream(line_iter):
         for word in (t.strip() for t in line.split()):
             yield word
 
+class TokenCountTest(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        super(TokenCountTest, self).__init__(*args, **kwargs)
+        self.counter = Syllables()
+
+    def check_count(self, tok, c):
+        try:
+            self.assertEqual(token_syllable_count(self.counter, tok), c)
+        except:
+            print("Failure: %s -> %d" % (tok, c))
+            raise
+
+    def test_simple(self):
+        self.check_count("the", 1)
+
+    def test_number(self):
+        counts = {
+                "0": 2,
+                "1": 1,
+                "2": 1,
+                "3": 1,
+                "4": 1,
+                "5": 1,
+                "6": 1,
+                "7": 2,
+                "8": 1,
+                "9": 1,
+                "10": 1,
+                "11": 3
+                }
+        for i, v in counts.items():
+            print(i, v)
+            self.check_count(i, v)
+
+    def test_leading_punctuation(self):
+        self.check_count("the", 1)
+
 if __name__ == '__main__':
-    import sys
-
-    haiku = [5, 7, 5]
-    counter = Syllables()
-
-    for poem in poem_finder(counter, token_stream((t.strip() for t in sys.stdin)), haiku):
-        for line in poem:
-            print(' '.join(line))
-        print()
+    unittest.main()

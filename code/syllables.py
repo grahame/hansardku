@@ -40,11 +40,7 @@ class Syllables:
     def __init__(self):
         self.known = {}
         self.hit = self.miss = 0
-        sys.stderr.write("reading GCIDE...")
-        sys.stderr.flush()
         self.known = read_gcide_syllables()
-        sys.stderr.write(" done\n")
-        sys.stderr.flush()
 
     def check_known(self, word, suffix):
         if suffix is not None and not word.endswith(suffix):
@@ -70,6 +66,7 @@ class Syllables:
                 words = numword.year(iword)
             else:
                 words = numword.cardinal(iword)
+            print("number lookup:", iword, words)
             return sum(self.lookup(word) for word in words)
 
         return self.__syllable_estimate(word)
