@@ -54,22 +54,26 @@ class Syllables:
             r += self.__syllable_estimate(suffix)
         return r
 
-    def lookup(self, word):
+    def _lookup(self, word):
         for suffix in Syllables.check_suffixes:
             l = self.check_known(word, suffix)
             if l is not None:
                 return l
-
         if number_re.match(word):
             iword = int(word)
             if len(word) == 4:
-                words = numword.year(iword)
+                fn = numword.year
             else:
-                words = numword.cardinal(iword)
+                fn = numword.cardinal
+            words = fn(iword).split()
             print("number lookup:", iword, words)
             return sum(self.lookup(word) for word in words)
-
         return self.__syllable_estimate(word)
+
+    def lookup(self, *args, **kwargs):
+        r = self._lookup(*args, **kwargs)
+        print(args, kwargs, r)
+        return r
 
     def __syllable_estimate(self, token):
         "Last resort syllable counter. Reasonably accurate in English." \

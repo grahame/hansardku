@@ -78,7 +78,7 @@ class TokenCountTest(unittest.TestCase):
         try:
             self.assertEqual(token_syllable_count(self.counter, tok), c)
         except:
-            print("Failure: %s -> %d" % (tok, c))
+            print("Failure: %s -> %d (should have been %d)" % (repr(tok), token_syllable_count(self.counter, tok), c))
             raise
 
     def test_simple(self):
@@ -86,21 +86,20 @@ class TokenCountTest(unittest.TestCase):
 
     def test_number(self):
         counts = {
-                "0": 2,
-                "1": 1,
-                "2": 1,
-                "3": 1,
-                "4": 1,
-                "5": 1,
-                "6": 1,
-                "7": 2,
-                "8": 1,
-                "9": 1,
-                "10": 1,
-                "11": 3
-                }
-        for i, v in counts.items():
-            print(i, v)
+            "0": 2,
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 2,
+            "8": 1,
+            "9": 1,
+            "10": 1,
+            "11": 3
+            }
+        for i, v in sorted(counts.items()):
             self.check_count(i, v)
 
     def test_leading_punctuation(self):
