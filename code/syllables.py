@@ -80,7 +80,7 @@ class Syllables:
 
     def lookup(self, *args, **kwargs):
         r = self._lookup(*args, **kwargs)
-        print(args, kwargs, r)
+        # print(args, kwargs, r)
         return r
 
     def __syllable_estimate(self, token):
