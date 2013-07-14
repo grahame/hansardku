@@ -61,14 +61,14 @@ class PoemFinder:
 
     def poem_for_trail(self, trail, at_row=None):
         npossible = self.trails[trail].length
-        if at_row is not None:
+        if at_row is not None and at_row < npossible:
             npossible -= 1
         idx = int(random.random() * npossible)
         if at_row is not None:
             if idx >= at_row:
                 idx += 1
         if trail.startswith('talker='):
-            tid = trail.split('=', 1)
+            tid = trail.split('=', 1)[1]
             poem = db.session.query(Haiku).filter(Haiku.talker_id==tid, Haiku.talker_index==idx).one()
         elif trail == 'all':
             poem = db.session.query(Haiku).filter(Haiku.poem_index==idx).one()
@@ -94,9 +94,9 @@ def get_haiku(path):
     return jsonify(data)
 
 @app.route("/api/0.1/haiku/<path>/<from_index>")
-def get_haiku(path, from_index):
+def get_haiku_from(path, from_index):
     finder = PoemFinder()
-    data = finder.poem_for_trail(path, from_index)
+    data = finder.poem_for_trail(path, int(from_index))
     if data is None:
         abort(404)
     return jsonify(data)
