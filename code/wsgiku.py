@@ -72,7 +72,6 @@ class PoemFinder:
         if trail.startswith('talker='):
             tid = trail.split('=', 1)[1]
             poem = db.session.query(Haiku).filter(Haiku.talker_id==tid, Haiku.talker_index==idx).one()
-            print(db.session.query(Haiku).filter(Haiku.talker_id==tid, Haiku.talker_index==idx))
         elif trail == 'all':
             poem = db.session.query(Haiku).filter(Haiku.poem_index==idx).one()
         else:
