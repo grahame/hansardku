@@ -102,3 +102,7 @@ class Syllables:
         if count == 0: count = 1
         return count
 
+if __name__ == "__main__":
+    counter = Syllables()
+    for i in sys.argv[1:]:
+        print (i, counter.lookup(i))
