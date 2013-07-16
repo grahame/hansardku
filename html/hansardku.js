@@ -23,16 +23,24 @@ jQuery(document).ready(function($) {
         init: function() {
             var self = this;
             this.base = '/api/0.1/';
-            $("#btn-another").click(function() {
+            $("#btn-another").click(function(ev) {
+                ev.preventDefault();
                 self.next();
             });
-            $("#btn-another-stuck").click(function() {
+            $("#btn-another-stuck").click(function(ev) {
+                ev.preventDefault();
                 self.next_mp();
             });
-            $("#btn-tweet").click(function() {
+            $("#btn-tweet").click(function(ev) {
+                ev.preventDefault();
                 self.tweet();
             });
-        }, 
+            $("#haiku-search").submit(function(ev) {
+                ev.preventDefault();
+                console.log($("#haiku-search-text").val());
+                $('body').scrollTop(1);
+            });
+        },
         _set: function(data) {
             this.data = data;
             window.location.hash = '/' + data['hash'];
