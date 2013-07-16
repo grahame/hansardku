@@ -75,7 +75,7 @@ class PoemFinder:
         else:
             return
         return {
-            'text': poem.poem,
+            'text': poem.poem.splitlines(),
             'hash': poem.poem_uid,
             'talker_id': poem.talker_id,
             'talker': poem.talker,
