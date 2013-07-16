@@ -3,7 +3,6 @@ jQuery(document).ready(function($) {
 
     $(window).load(function() {
         $('body').scrollTop(1);
-        console.log('scrollTop');
     });
 
     var HaikuManager = function() {
@@ -25,19 +24,23 @@ jQuery(document).ready(function($) {
         }, 
         _set: function(data) {
             this.data = data;
-            window.location.hash = data['hash'];
+            window.location.hash = '/' + data['hash'];
             $(".haiku-name").text(data['talker']);
             $(".haiku-date").text(data['date']);
-            $(".poem-body").empty();
+            // fill in the poem
+            $(".poem-lines").empty();
+            $("#btn-another-stuck").text("Another from " + data['talker']);
+
             $.each(data['text'], function(idx, line) {
                 var div = $("<div/>");
-                div.text(line.replace(" ", "&nbsp;"));
-                $(".poem-body").append(div);
+                div.text(line);
+                div.html(div.html().replace(' ', '&nbsp;'));
+                $(".poem-lines").append(div);
             });
         },
         _trail_get: function(trail_name, last) {
             var self = this;
-            var uri = '/api/0.1/haiku/' + trail_name;
+            var uri = '/api/0.1/haiku/issue/' + trail_name;
             if (last) {
                 uri += '/' + last;
             }
@@ -45,10 +48,24 @@ jQuery(document).ready(function($) {
                 self._set(data);                
             });
         },
+        load: function(uid) {
+            var self = this;
+            var uri = '/api/0.1/haiku/byuid/' + uid;
+            $.getJSON(uri, function(data) {
+                self._set(data);                
+            });
+        },
         next: function() {
-            this._trail_get('all', this.data['poem_index']);
+            var last;
+            if (this.data) {
+                last = this.data['poem_index'];
+            }
+            this._trail_get('all', last);
         },
         next_mp: function() {
+            if (!this.data) {
+                return;
+            }
             this._trail_get('talker=' + this.data['talker_id'], this.data['talker_index']);
         },
         tweet: function() {
@@ -57,5 +74,13 @@ jQuery(document).ready(function($) {
     });
 
     manager = new HaikuManager();
-    manager.next();
+
+    // restore last haiku
+    var m = window.location.hash.match(/^#\/([A-Za-z0-9]+)$/);
+    console.log(window.location.hash);
+    if (m) {
+        manager.load(m[1]);
+    } else {
+        manager.next();
+    }
 });

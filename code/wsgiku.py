@@ -31,13 +31,15 @@ class Document(db.Model):
 class Haiku(db.Model):
     document_id = db.Column(db.Integer, db.ForeignKey('document.id'), nullable=False)
     poem_uid = db.Column(db.String, nullable=False, index=True)
-    talker_id = db.Column(db.String, nullable=False, index=True)
+    talker_id = db.Column(db.String, nullable=False)
     talker = db.Column(db.String, nullable=False)
     party = db.Column(db.String)
     poem = db.Column(db.Text, nullable=False)
     # trails    
     poem_index = db.Column(db.Integer, primary_key=True)
-    talker_index = db.Column(db.Integer, index=True, nullable=False)
+    talker_index = db.Column(db.Integer, nullable=False)
+    __table_args__ = (
+        sqlalchemy.Index('talker_trail_idx', talker_id, talker_index), )
 
 class HaikuTrail(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -70,22 +72,30 @@ class PoemFinder:
         if trail.startswith('talker='):
             tid = trail.split('=', 1)[1]
             poem = db.session.query(Haiku).filter(Haiku.talker_id==tid, Haiku.talker_index==idx).one()
+            print(db.session.query(Haiku).filter(Haiku.talker_id==tid, Haiku.talker_index==idx))
         elif trail == 'all':
             poem = db.session.query(Haiku).filter(Haiku.poem_index==idx).one()
         else:
             return
+        return self.poem_response(poem)
+
+    def poem_by_uid(self, uid):
+        poem = db.session.query(Haiku).filter(Haiku.poem_uid==uid).one()
+        return self.poem_response(poem)
+
+    def poem_response(self, poem):
         return {
             'text': poem.poem.splitlines(),
             'hash': poem.poem_uid,
             'talker_id': poem.talker_id,
             'talker': poem.talker,
             'party' : poem.party,
-            'date': poem.document.date.strftime("%Y"),
+            'date': poem.document.date.strftime("%a, %d %B %Y"),
             'talker_index': poem.talker_index,
             'poem_index': poem.poem_index
         }
 
-@app.route("/api/0.1/haiku/<path>")
+@app.route("/api/0.1/haiku/issue/<path>")
 def get_haiku(path):
     finder = PoemFinder()
     data = finder.poem_for_trail(path)
@@ -93,10 +103,15 @@ def get_haiku(path):
         abort(404)
     return jsonify(data)
 
-@app.route("/api/0.1/haiku/<path>/<from_index>")
+@app.route("/api/0.1/haiku/issue/<path>/<from_index>")
 def get_haiku_from(path, from_index):
     finder = PoemFinder()
     data = finder.poem_for_trail(path, int(from_index))
     if data is None:
         abort(404)
     return jsonify(data)
+
+@app.route("/api/0.1/haiku/byuid/<uid>")
+def get_haiku_uid(uid):
+    finder = PoemFinder()
+    return jsonify(finder.poem_by_uid(uid))
