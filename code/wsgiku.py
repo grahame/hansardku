@@ -14,6 +14,7 @@ def generate_app():
 
 app = generate_app()
 db = SQLAlchemy(app)
+Base = declarative_base()
 
 class Document(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -56,6 +57,12 @@ class PoemFinder:
         return cls._instance
 
     def __init__(self):
+        # introspect the search table
+        if self._made:
+            return
+        self._made = True
+        search_table = sqlalchemy.Table('haiku_search', sqlalchemy.MetaData(), autoload=True, autoload_with=db.engine)
+        self.HaikuSearch = type('HaikuSearch', (Base,), { '__table__' : search_table})
         # load in the trails
         self.trails = {}
         for trail in db.session.query(HaikuTrail).all():
@@ -81,6 +88,20 @@ class PoemFinder:
     def poem_by_uid(self, uid):
         poem = db.session.query(Haiku).filter(Haiku.poem_uid==uid).one()
         return self.poem_response(poem)
+
+    def search(self, terms):
+        q = db.session.query(Haiku).\
+            join(self.HaikuSearch, Haiku.poem_index==self.HaikuSearch.poem_index).\
+            filter('haiku_search.haiku @@ plainto_tsquery(:terms)').\
+            order_by('ts_rank_cd(haiku_search.haiku, plainto_tsquery(:terms)) DESC').\
+            params(terms=terms)
+        poems = q[:100]
+        resp = {
+            'search_results' : [ t.poem_uid for t in poems ]
+        }
+        if poems:
+            resp['poem'] = self.poem_response(poems[0])
+        return resp
 
     def poem_response(self, poem):
         return {
@@ -114,3 +135,9 @@ def get_haiku_from(path, from_index):
 def get_haiku_uid(uid):
     finder = PoemFinder()
     return jsonify(finder.poem_by_uid(uid))
+
+@app.route("/api/0.1/haiku/search/<terms>")
+def get_haiku_search(terms):
+    finder = PoemFinder()
+    return jsonify(finder.search(terms))
+

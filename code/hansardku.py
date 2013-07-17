@@ -90,9 +90,10 @@ if __name__ == '__main__':
             name = oneof(elem, './talk.start/talker/name')
         if name.upper().find("PRESIDENT") != -1 or name.upper().find("SPEAKER") != -1:
             return None
-        talker_id = oneof(elem, './talk.start/talker/name.id').upper()
+        talker_id = oneof(elem, './talk.start/talker/name.id')
         if talker_id is None:
             return None
+        talker_id = talker_id.upper()
         return HaikuContext(
             talker_id = talker_id,
             talker = name,
