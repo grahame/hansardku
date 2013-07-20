@@ -39,17 +39,36 @@ jQuery(document).ready(function($) {
                 var q = $("#haiku-search-text").val();
                 var uri = '/api/0.1/haiku/search/' + encodeURIComponent(q);
                 $.getJSON(uri, function(data) {
-                    self.search_trail = data['trail'];
-                    $("#another-span").text("Haiku for ‘" + q + "’ »");
-                    self._set(data['poem']);
+                    if (data['poem']) {
+                        self._set(data['poem']);
+                    } else {
+                        self.add_alert('No results for ‘' + q + '’');
+                    }
+                    if (data['trail'].length > 0) {
+                        self.search_trail = data['trail'];
+                        $("#another-span").text("Haiku for ‘" + q + "’ »");
+                    }
                 });
                 document.activeElement.blur();
                 $("input").blur();
                 $('body').scrollTop(1);
             });
         },
+        clear_alerts: function() {
+            $("#alert-area").empty();
+        },
+        add_alert: function(s) {
+            this.clear_alerts();
+            var div = $("<div/>").addClass("alert");
+            var btn = $("<button/>").addClass("close").attr("data-dismiss", "alert").html("&times;");
+            div.append(btn);
+            div.append($("<strong/>").text("Oh my! "));
+            div.append($("<span/>").text(s));
+            $("#alert-area").append(div);
+        },
         _set: function(data) {
             this.data = data;
+            this.clear_alerts();
             window.location.hash = '/' + data['hash'];
             $(".haiku-name").text(data['talker']);
             $(".haiku-date").text(data['date']);
@@ -80,13 +99,18 @@ jQuery(document).ready(function($) {
                 self._set(data);                
             });
         },
+        search_over: function() {
+            $("#another-span").text("Another!");
+            $("#haiku-search-text").val("");
+            this.search_trail = null;
+        },
         next: function() {
             var last;
             /* search trails */
             if (this.search_trail && (this.search_trail.length > 0)) {
                 var next_hash = this.search_trail.shift();
                 if (this.search_trail.length == 0) {
-                    $("#btn-another-stuck").text("Another!");
+                    this.search_over();
                 }
                 this.load(next_hash);
             } else {
@@ -100,6 +124,8 @@ jQuery(document).ready(function($) {
             if (!this.data) {
                 return;
             }
+            /* disable search if one was running */
+            this.search_over();
             this._trail_get('talker=' + this.data['talker_id'], this.data['talker_index']);
         },
         tweet: function() {
