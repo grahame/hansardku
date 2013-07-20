@@ -22,7 +22,6 @@ jQuery(document).ready(function($) {
     $.extend(HaikuManager.prototype, {
         init: function() {
             var self = this;
-            this.base = '/api/0.1/';
             $("#btn-another").click(function(ev) {
                 ev.preventDefault();
                 self.next();
@@ -37,7 +36,15 @@ jQuery(document).ready(function($) {
             });
             $("#haiku-search").submit(function(ev) {
                 ev.preventDefault();
-                console.log($("#haiku-search-text").val());
+                var q = $("#haiku-search-text").val();
+                var uri = '/api/0.1/haiku/search/' + encodeURIComponent(q);
+                $.getJSON(uri, function(data) {
+                    self.search_trail = data['trail'];
+                    $("#another-span").text("Haiku for ‘" + q + "’ »");
+                    self._set(data['poem']);
+                });
+                document.activeElement.blur();
+                $("input").blur();
                 $('body').scrollTop(1);
             });
         },
@@ -49,7 +56,6 @@ jQuery(document).ready(function($) {
             // fill in the poem
             $(".poem-lines").empty();
             $("#btn-another-stuck").text("Another from " + data['talker']);
-
             $.each(data['text'], function(idx, line) {
                 var div = $("<div/>");
                 div.text(line);
@@ -76,10 +82,19 @@ jQuery(document).ready(function($) {
         },
         next: function() {
             var last;
-            if (this.data) {
-                last = this.data['poem_index'];
+            /* search trails */
+            if (this.search_trail && (this.search_trail.length > 0)) {
+                var next_hash = this.search_trail.shift();
+                if (this.search_trail.length == 0) {
+                    $("#btn-another-stuck").text("Another!");
+                }
+                this.load(next_hash);
+            } else {
+                if (this.data) {
+                    last = this.data['poem_index'];
+                }
+                this._trail_get('all', last);
             }
-            this._trail_get('all', last);
         },
         next_mp: function() {
             if (!this.data) {
@@ -95,7 +110,6 @@ jQuery(document).ready(function($) {
                 hashtags: 'hansardku'
             });
             window.open(intent, '_newtab');
-            console.log(intent);
         },
         from_hash: function() {
             var m = window.location.hash.match(/^#\/([A-Za-z0-9]+)$/);

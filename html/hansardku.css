@@ -70,3 +70,8 @@ blockquote cite:before {
     padding-left: 0 !important;
   }
 }
+
+/* stop safari autozoom */
+#haiku-search-text {
+    font-size:16px!important;
+}
