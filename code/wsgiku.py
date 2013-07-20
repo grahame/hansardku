@@ -93,11 +93,12 @@ class PoemFinder:
         q = db.session.query(Haiku).\
             join(self.HaikuSearch, Haiku.poem_index==self.HaikuSearch.poem_index).\
             filter('haiku_search.haiku @@ plainto_tsquery(:terms)').\
-            order_by('ts_rank_cd(haiku_search.haiku, plainto_tsquery(:terms)) DESC').\
             params(terms=terms)
+            # order_by('ts_rank_cd(haiku_search.haiku, plainto_tsquery(:terms)) DESC').\
         poems = q[:100]
         resp = {
-            'search_results' : [ t.poem_uid for t in poems ]
+            'count' : len(poems),
+            'trail' : [ t.poem_uid for t in poems[1:] ]
         }
         if poems:
             resp['poem'] = self.poem_response(poems[0])

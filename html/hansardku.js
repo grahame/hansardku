@@ -88,7 +88,14 @@ jQuery(document).ready(function($) {
             this._trail_get('talker=' + this.data['talker_id'], this.data['talker_index']);
         },
         tweet: function() {
-            // fixme!!
+            var intent = 'https://twitter.com/intent/tweet?';
+            intent += $.param({
+                url: document.location.href,
+                text: this.data['text'].join('\n'),
+                hashtags: 'hansardku'
+            });
+            window.open(intent, '_newtab');
+            console.log(intent);
         },
         from_hash: function() {
             var m = window.location.hash.match(/^#\/([A-Za-z0-9]+)$/);
