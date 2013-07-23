@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
 from lxml import etree
-import sys, os, csv, hashlib, base62, time, string, json
+import sys, os, csv, hashlib, base62, time, string, json, re
 from xml2text import xml2text
+from dropquotes import dropquotes
 import itertools
 from haiku import token_stream, poem_finder, Syllables
 from pprint import pprint
@@ -143,6 +144,7 @@ if __name__ == '__main__':
                 continue
             for para in paras:
                 lines = [t.strip() for t in xml2text(para).splitlines()]
+                lines = [item for sublist in map(dropquotes, lines) for item in sublist ]
                 yield elem_ctxt, lines
 
     db.create_all()
