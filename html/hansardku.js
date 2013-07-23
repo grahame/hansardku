@@ -47,6 +47,8 @@ jQuery(document).ready(function($) {
                     if (data['trail'].length > 0) {
                         self.search_trail = data['trail'];
                         $("#another-span").text("Haiku for ‘" + q + "’ »");
+                    } else {
+                        self.search_over();
                     }
                 });
                 document.activeElement.blur();

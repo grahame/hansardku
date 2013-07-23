@@ -24,6 +24,9 @@ class Document(db.Model):
     session = db.Column(db.Integer, nullable=False)
     period = db.Column(db.Integer, nullable=False)
     chamber = db.Column(db.String, nullable=False)
+    xml_uri = db.Column(db.String, nullable=False)
+    html_uri = db.Column(db.String)
+    pdf_uri = db.Column(db.String)
     haiku = db.relationship('Haiku',
         backref=db.backref('document'),
         cascade="all",

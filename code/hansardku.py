@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from lxml import etree
-import sys, os, csv, hashlib, base62, time, string
+import sys, os, csv, hashlib, base62, time, string, json
 from xml2text import xml2text
 import itertools
 from haiku import token_stream, poem_finder, Syllables
@@ -29,6 +29,14 @@ if __name__ == '__main__':
         for elem in elems:
             if backto is not None:
                 elem = elem.xpath('ancestor::%s' % backto)[0]
+            parent = elem.getparent()
+            if parent is None:
+                continue
+            parent.remove(elem)
+
+    def killelem(et, elem):
+        elems = et.xpath('//%s' % elem)
+        for elem in elems:
             parent = elem.getparent()
             if parent is None:
                 continue
@@ -100,9 +108,12 @@ if __name__ == '__main__':
             party = oneof(elem, './talk.start/talker/party')
         )
 
-    def make_document(filename, et):
+    def make_document(info, et):
         return Document(
-            filename = os.path.basename(filename), 
+            filename = info['fname'],
+            html_uri = info['uri'],
+            xml_uri = info['xml_uri'],
+            pdf_uri = info['pdf_uri'],
             date = oneof(et, '/hansard/session.header/date'),
             parliament = oneof(et, '/hansard/session.header/parliament.no'),
             session = oneof(et, '/hansard/session.header/session.no'),
@@ -111,6 +122,7 @@ if __name__ == '__main__':
         )
 
     def para_iter(e):
+        killelem(e, "quote")
         killclass(e, "HPS-MemberIInterjecting", "p")
         killclass(e, "HPS-GeneralIInterjecting", "p")
         killclass(e, "HPS-MemberInterjecting", "p")
@@ -121,9 +133,10 @@ if __name__ == '__main__':
         killclass(e, "HPS-MemberQuestion")
         killclass(e, "HPS-MemberContinuation")
         killclass(e, "HPS-MemberSpeech")
+        killclass(e, "HPS-Small") # either a quote or something boring, like a motion
 
         for elem in e.xpath('//talk.start/talker/../..'):
-            # FIXME: borken.xml
+            # shouldn't pull in quotes (they're in quote/para)
             paras = elem.xpath('./talk.text/body/p | ./talk.start/para | ./para | ./talk.text/para')
             elem_ctxt = make_haiku_context(elem)
             if elem_ctxt is None:
@@ -135,16 +148,21 @@ if __name__ == '__main__':
     db.create_all()
     db.session.commit()
 
-    def make_haiku(xml_file):
+    def make_haiku(info_file):
         def get_haiku(doc):
             for ctxt, para in para_iter(e):
                 for poem in poem_finder(counter, token_stream(para), haiku_pattern):
                     yield ctxt.get(doc, '\n'.join(' '.join(line) for line in poem.get()))
 
+        with open(info_file, 'r') as fd:
+            info = json.load(fd)
+
+        dname = os.path.dirname(info_file)
+        xml_file = os.path.join(dname, info['fname'])
         with open(xml_file, 'rb') as fd:
             e = etree.parse(fd)
 
-        doc = make_document(xml_file, e)
+        doc = make_document(info, e)
         db.session.add(doc)
         db.session.commit()
 
@@ -174,11 +192,11 @@ if __name__ == '__main__':
     haiku_pattern = [5, 7, 5]
     counter = Syllables()
 
-    for i, xml_file in enumerate(sys.argv[1:]):
+    for i, info_file in enumerate(sys.argv[1:]):
         start_time = time.time()
-        sys.stderr.write("%d/%d: %s... " % (i+1, len(files), os.path.basename(xml_file)))
+        sys.stderr.write("%d/%d: %s... " % (i+1, len(files), info_file))
         sys.stderr.flush()
-        doc_count = make_haiku(xml_file)
+        doc_count = make_haiku(info_file)
         duration = time.time() - start_time
         if duration > 0:
             rate_s = ", %.1f haiku/s" % (doc_count/duration)
