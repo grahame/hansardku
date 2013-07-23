@@ -5,7 +5,7 @@ import sys, os, csv, hashlib, base62, time, string, json, re
 from xml2text import xml2text
 from dropquotes import dropquotes
 import itertools
-from haiku import token_stream, poem_finder, Syllables
+from haiku import token_stream, poem_finder, Syllables, token_syllable_count
 from pprint import pprint
 from wsgiku import db, app, Document, Haiku, HaikuTrail
 
@@ -136,6 +136,15 @@ if __name__ == '__main__':
         killclass(e, "HPS-MemberSpeech")
         killclass(e, "HPS-Small") # either a quote or something boring, like a motion
 
+        def test_kill_quote(q):
+            syllables = token_syllable_count(counter, q)
+            # we don't want the inner of a quote making up an entire haiku; let's set a safe
+            # level at ~ half the haiku, 9 syllables max
+            if (syllables) >= 9:
+                return True
+            else:
+                return False
+
         for elem in e.xpath('//talk.start/talker/../..'):
             # shouldn't pull in quotes (they're in quote/para)
             paras = elem.xpath('./talk.text/body/p | ./talk.start/para | ./para | ./talk.text/para')
@@ -144,7 +153,7 @@ if __name__ == '__main__':
                 continue
             for para in paras:
                 lines = [t.strip() for t in xml2text(para).splitlines()]
-                lines = [item for sublist in map(dropquotes, lines) for item in sublist ]
+                lines = [item for sublist in map(lambda x: dropquotes(x, test_kill_quote), lines) for item in sublist ]
                 yield elem_ctxt, lines
 
     db.create_all()
