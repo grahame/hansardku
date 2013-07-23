@@ -1,4 +1,5 @@
 import re, string, sys, os, json
+from roman import decode_roman
 from lxml import etree
 sys.path.append('../numword')
 import numword
@@ -36,6 +37,8 @@ class Syllables:
         'ical', 'ious', 'ence', 'ment', 'ness', 'ship', 'less', 'sion',
         'tion', 'ical', 'ous', 'ful', 'ate', 'ify', 'ive', 'ing', 'ize',
         'ise', 'ism', 'ic', 'ist', 'er', 'fy', 'or', 'en', 'y')
+    # credit: http://stackoverflow.com/questions/267399/how-do-you-match-only-valid-roman-numerals-with-a-regular-expression
+    roman_re = re.compile(r'^(ix|iv|v?i{0,3})$')
 
     def __init__(self):
         self.known = {}
@@ -56,6 +59,10 @@ class Syllables:
 
     def _lookup(self, word):
         lower_word = word.lower()
+        # roman numerals
+        if len(lower_word) > 1 and Syllables.roman_re.match(lower_word):
+            words = numword.cardinal(decode_roman(lower_word)).split()
+            return sum(self.lookup(word) for word in words)
         # numbers
         if number_re.match(word):
             iword = int(word)

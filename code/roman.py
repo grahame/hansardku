@@ -2,7 +2,7 @@
 
 _rdecode = dict(zip('MDCLXVI', (1000, 500, 100, 50, 10, 5, 1)))
  
-def decode(roman):
+def decode_roman(roman):
     roman = roman.upper()
     result = 0
     for r, r1 in zip(roman, roman[1:]):
@@ -12,4 +12,4 @@ def decode(roman):
  
 if __name__ == '__main__':
     for r in 'iii MCMXC MMVIII MDCLXVI'.split():
-        print( r, decode(r) )
+        print( r, decode_roman(r) )
