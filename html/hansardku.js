@@ -69,11 +69,26 @@ jQuery(document).ready(function($) {
             $("#alert-area").append(div);
         },
         _set: function(data) {
+// <span class="haiku-name"></span> (<span class="haiku-date">&nbsp;&nbsp;</span>)
+
             this.data = data;
             this.clear_alerts();
             window.location.hash = '/' + data['hash'];
-            $(".haiku-name").text(data['talker']);
-            $(".haiku-date").text(data['date']);
+
+            var cite = $("#poem-citation");
+            cite.empty();
+            cite.append($("<span/>").addClass("haiku-name").text(data['talker']));
+            if (data['party']) {
+                cite.append($("<span/>").text(" (" + data['party'] + ")"));
+            }
+            cite.append($("<br/>"));
+            var uri = data['pdf_uri'];
+            if (!uri) {
+                uri = data['html_uri'];
+            }
+            var link = $("<a/>").attr('href', uri).attr('target', '_other');
+            link.append($("<span/>").text(data['chamber'] + ' Hansard, ' + data['date']));
+            cite.append(link);
             // fill in the poem
             $(".poem-lines").empty();
             $("#btn-another-stuck").text("Another from " + data['talker']);
@@ -134,7 +149,7 @@ jQuery(document).ready(function($) {
             var intent = 'https://twitter.com/intent/tweet?';
             intent += $.param({
                 url: document.location.href,
-                text: this.data['text'].join('\n'),
+                text: '“' + this.data['text'].join(' ⤦ ') + '” – ' + this.data['talker'],
                 hashtags: 'hansardku'
             });
             window.open(intent, '_newtab');

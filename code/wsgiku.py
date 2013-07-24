@@ -99,6 +99,7 @@ class PoemFinder:
             params(terms=terms)
             # order_by('ts_rank_cd(haiku_search.haiku, plainto_tsquery(:terms)) DESC').\
         poems = q[:100]
+        random.shuffle(poems)
         resp = {
             'count' : len(poems),
             'trail' : [ t.poem_uid for t in poems[1:] ]
@@ -114,7 +115,13 @@ class PoemFinder:
             'talker_id': poem.talker_id,
             'talker': poem.talker,
             'party' : poem.party,
-            'date': poem.document.date.strftime("%a, %d %B %Y"),
+            'date': poem.document.date.strftime("%A, %d %B %Y"),
+            'session': poem.document.session,
+            'period': poem.document.period,
+            'chamber': poem.document.chamber,
+            'xml_uri': poem.document.xml_uri,
+            'html_uri': poem.document.html_uri,
+            'pdf_uri': poem.document.pdf_uri,
             'talker_index': poem.talker_index,
             'poem_index': poem.poem_index
         }
