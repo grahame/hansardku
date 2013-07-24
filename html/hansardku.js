@@ -111,6 +111,9 @@ jQuery(document).ready(function($) {
         },
         load: function(uid) {
             var self = this;
+            if (this.data && this.data['hash'] == uid) {
+                return;
+            }
             var uri = '/api/0.1/haiku/byuid/' + uid;
             $.getJSON(uri, function(data) {
                 self._set(data);                

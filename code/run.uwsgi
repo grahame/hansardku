@@ -1,3 +1,4 @@
 #!/bin/zsh
 
-uwsgi_python33 -s 127.0.0.1:8889 -w wsgiku:app --master -H ~grahame/venv.haiku/ -p "$1" --lazy $*
+cd ~grahame/code/haiku/code/
+uwsgi_python33 -s 127.0.0.1:8889 -w wsgiku:app --master -H ~grahame/venv.haiku/ -p 16 --lazy
