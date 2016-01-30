@@ -152,7 +152,7 @@ jQuery(document).ready(function($) {
             var intent = 'https://twitter.com/intent/tweet?';
             intent += $.param({
                 url: document.location.href,
-                text: '“' + this.data['text'].join(' ⤦ ') + '” – ' + this.data['talker'],
+                text: '“' + this.data['text'].join(' ↙ ') + '” – ' + this.data['talker'],
                 hashtags: 'hansardku'
             });
             window.open(intent, '_newtab');
