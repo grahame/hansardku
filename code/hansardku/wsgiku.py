@@ -7,9 +7,9 @@ import imp, sys, os, sqlalchemy, hashlib, time, random
 def generate_app():
     app = Flask(__name__)
     app.config['PROPAGATE_EXCEPTIONS'] = True
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres:///hansardku'
-    from localsettings import SECRET_KEY
-    app.config['SECRET_KEY'] = SECRET_KEY
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DB_URI']
+    with open("/data/secret_key") as fd:
+        app.config['SECRET_KEY'] = fd.read().strip()
     return app
 
 app = generate_app()

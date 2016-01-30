@@ -1,0 +1,7 @@
+Dockerfile
+__pycache__/
+couchdb-python3/
+examples/
+html/
+numword/
+xml_files/

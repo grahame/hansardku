@@ -3,7 +3,7 @@ cache/
 spkrs/
 tmp/
 examples/
-numword/
+/numword/
 xml_files/
 .*swp
 *.pyc
