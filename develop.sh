@@ -26,7 +26,7 @@ dockerbuild() {
         echo "############################################################# ${DOCKER_IMAGE} ${tag}"
         set -x
         docker build ${DOCKER_BUILD_OPTIONS} --build-arg GIT_TAG=${gittag} -t ${tag} -f Dockerfile .
-        #docker push ${tag}
+        docker push ${tag}
         set +x
     done
 }

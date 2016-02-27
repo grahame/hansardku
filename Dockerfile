@@ -23,6 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       python3.4 \
       uwsgi-plugin-python3 \
       python3-pip \
+      python3-psycopg2 \
       wget less git && \
   apt-get autoremove -y --purge && \
   apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

@@ -6,7 +6,7 @@ command="$1"
 
 if [ x"$command" = x"uwsgi" ]; then
     cd /app &&
-        uwsgi_python34 -s :8889 -w hansardku.wsgiku:app --master -p 16 --lazy
+        uwsgi_python34 -s 0.0.0.0:8889 -w hansardku.wsgiku:app --master -p 16 --lazy
     while true; do
         echo "** uwsgi has quit: sleep 30 **"
         sleep 30
